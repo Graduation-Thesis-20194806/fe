@@ -1,0 +1,23 @@
+h2.app-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+h3.app-title {
+  font-weight: 500;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.page-container {
+  .box-container-1:not(:last-child) {
+    margin-bottom: 2rem;
+  }
+}
+
+.box-container-1 {
+  .title-container {
+    margin-bottom: 1rem;
+  }
+}

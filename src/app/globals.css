@@ -2,20 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Oswald';
+  src: url('/fonts/Oswald-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: light;
+}
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #4C4C4C;
+  --primary-color: #396148;
+  --border-color: #E6E6E6;
+  --secondary-color: #e74c3c;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+::-webkit-scrollbar {
+  width: 13px;
 }
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background-color: white;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+  border: 3px solid white;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
+
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+.app-logo h3 {
+  color: #e74c3c;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 300;
+  text-transform: uppercase;
+  line-height:1;
+}
+.app-logo p {
+  padding-left: 0px;
+  color: #34495e;
+  font-weight: 600;  
+  font-family: 'Open Sans', sans-serif;
+  text-transform: uppercase;
+}
+.logo-holder{
+  text-align:center;
+}
+

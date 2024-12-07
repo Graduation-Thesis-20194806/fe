@@ -1,0 +1,49 @@
+.app-table.ant-table-wrapper {
+  .ant-table {
+    .ant-table-thead {
+      .ant-table-cell {
+        background-color: #f7f7f7;
+        border: 0;
+      }
+      .ant-table-cell::before {
+        display: none;
+      }
+    }
+    .ant-table-tbody {
+      .ant-table-row {
+        background-color: #fcfcfc;
+      }
+    }
+    .ant-table-cell {
+      padding: 12px 16px;
+    }
+  }
+  .ant-pagination {
+    margin-block: 0;
+    padding: 8px 16px;
+    background-color: #f7f7f7;
+    border-radius: 0 0 8px 8px;
+    .ant-pagination-disabled {
+      background-color: transparent !important;
+      color: #e6e6e6;
+    }
+    .ant-pagination-item,
+    .ant-pagination-prev,
+    .ant-pagination-next {
+      min-width: 24px;
+      height: 24px;
+      background-color: #e6e6e6;
+      line-height: initial;
+
+      a {
+        font-size: 0.75rem;
+        line-height: 24px;
+      }
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}

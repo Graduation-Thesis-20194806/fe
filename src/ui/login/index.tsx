@@ -1,89 +1,68 @@
-'use client'
-import AppButton from '@/common/components/AppButton'
-import AppInput from '@/common/components/AppInput'
-import { EMAIL_REGEX } from '@/common/constants'
-import { Checkbox, message } from 'antd'
-import { useCallback } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { UsersService } from '../../../client-sdk'
-import { useRouter } from 'next/navigation'
-import { StorageType, setStorage } from '@/common/helpers/storage'
-import { useLocale, useTranslations } from 'next-intl'
-import TitleWrapper from '@/common/components/TitleWrapper'
-
-type FormValue = {
-  email: string
-  password: string
-  rememberLogin: boolean
-}
+'use client';
+import AppButton from "@/common/components/AppButton";
+import AppInput from "@/common/components/AppInput";
+import { message } from "antd";
+import { useCallback } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { AuthService } from "../../../client-sdk";
+import { useRouter } from "next/navigation";
+import { setStorage } from "@/common/helpers/storage";
+import TitleWrapper from "@/common/components/TitleWrapper";
+import { LoginData, LoginSchema } from "@/common/validate/login";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 export default function LoginComponent() {
-  const router = useRouter()
-  const locale = useLocale()
-  const commonT = useTranslations('common')
-  const t = useTranslations('LoginComponent')
+  const router = useRouter();
   const {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<FormValue>({
-    defaultValues: {
-      email: '',
-      password: '',
-      rememberLogin: false,
-    },
-  })
-
-  const emailLabel = t('input.email.label')
-  const passwordLabel = t('input.password.label')
-  const passwordLength = { min: 8, max: 64 }
+  } = useForm<LoginData>({
+    resolver: yupResolver(LoginSchema),
+  });
 
   const handleLogin = useCallback(
-    async ({ email, password, rememberLogin }: FormValue) => {
+    async ({ email, password }: LoginData) => {
       try {
-        const res = await UsersService.loginUserApiUsersLoginPost({
+        const res = await AuthService.authControllerLogin({
           email,
           password,
-        })
-        const storage: StorageType = rememberLogin ? 'local' : 'session'
-        setStorage('token', res.token, storage)
-        setStorage('user', JSON.stringify(res.user), storage)
-        message.success(t('login_success'))
-        router.push(`/${locale}/dashboard`)
+        });
+        const storage = "local";
+        setStorage("token", res.accessToken, storage);
+        setStorage("refresh_token", res.refreshToken, storage);
+        setStorage("user", JSON.stringify(res.user), storage);
+        message.success("Login successfully");
+        router.push(`/`);
       } catch (e) {
-        message.error(t('incorrect_email_or_password'))
+        console.log(e);
+        message.error("There are something wrong");
       }
     },
-    [router, locale, t]
-  )
+    [router]
+  );
 
   const moveToRegister = useCallback(() => {
-    router.push(`/${locale}/register`)
-  }, [router, locale])
+    router.push(`/register`);
+  }, [router]);
 
   const moveToForgotPassword = useCallback(() => {
-    router.push(`/${locale}/forgot-password`)
-  }, [router, locale])
+    router.push(`/forgot-password`);
+  }, [router]);
 
   return (
     <form onSubmit={handleSubmit(handleLogin)}>
       <Controller
         control={control}
         name="email"
-        rules={{
-          required: commonT('rules.required', { field: emailLabel }),
-          pattern: {
-            value: EMAIL_REGEX,
-            message: commonT('rules.invalid', { field: emailLabel }),
-          },
-        }}
         render={({ field: { value, onChange } }) => (
-          <TitleWrapper label={emailLabel} error={errors.email?.message}>
+          <TitleWrapper label={"Email"} error={errors.email?.message}>
             <AppInput
-              placeholder={t('input.email.placeholder')}
+              placeholder={"abc@example.com"}
               error={errors.email?.message}
               value={value}
               onChange={onChange}
+              className="mb-4"
             />
           </TitleWrapper>
         )}
@@ -91,31 +70,12 @@ export default function LoginComponent() {
       <Controller
         control={control}
         name="password"
-        rules={{
-          required: commonT('rules.required', { field: passwordLabel }),
-          minLength: {
-            value: passwordLength.min,
-            message: commonT('rules.minLength', {
-              field: passwordLabel,
-              value: passwordLength.min,
-            }),
-          },
-          maxLength: {
-            value: passwordLength.max,
-            message: commonT('rules.maxLength', {
-              field: passwordLabel,
-              value: passwordLength.max,
-            }),
-          },
-        }}
         render={({ field: { value, onChange } }) => (
           <TitleWrapper
-            label={passwordLabel}
+            label={"Password"}
             error={errors.password?.message}
-            className="mt-4"
           >
             <AppInput
-              placeholder={t('input.password.placeholder')}
               type="password"
               error={errors.password?.message}
               value={value}
@@ -124,33 +84,18 @@ export default function LoginComponent() {
           </TitleWrapper>
         )}
       />
-      <div className="flex justify-between items-center mb-5">
-        <Controller
-          control={control}
-          name="rememberLogin"
-          render={({ field: { value, onChange } }) => (
-            <Checkbox
-              checked={value}
-              onChange={onChange}
-              className="font-medium text-sm text-[#183F6C]"
-            >
-              {t('remember_login')}
-            </Checkbox>
-          )}
-        />
-        <AppButton
-          text={t('forgot_password')}
-          type="link"
-          onClick={moveToForgotPassword}
-        />
-      </div>
-      <AppButton text={t('login')} className="mb-4" htmlType="submit" />
+      <AppButton
+        text={"Forgot password?"}
+        type="link"
+        onClick={moveToForgotPassword}
+      />
+      <AppButton type="primary" text={"Login"} className="mb-4 block" htmlType="submit"/>
       <div className="flex justify-center items-center">
         <p className="text-center text-sm font-normal text-[#475467] mr-1">
-          {t('no_account')}
+          {"Create new account"}
         </p>
-        <AppButton text={t('signup')} type="link" onClick={moveToRegister} />
+        <AppButton text={"Sign up"} type="link" onClick={moveToRegister} />
       </div>
     </form>
-  )
+  );
 }
