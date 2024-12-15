@@ -19,6 +19,7 @@ export type UpdateReportDto = {
     status?: string;
     images?: Array<CreateReportImageDto>;
     tags?: Array<string>;
+    phaseId?: number;
     newImages?: Array<CreateReportImageDto>;
     deleteImages?: Array<number>;
 };

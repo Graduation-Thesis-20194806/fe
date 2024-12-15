@@ -17,6 +17,9 @@ export type UpdateTaskDto = {
     tags?: Array<number>;
     newAttachments?: Array<any[]>;
     deleteAttachments?: Array<any[]>;
+    attachments?: Array<number>;
+    reportId?: number;
+    phaseId?: number;
 };
 export namespace UpdateTaskDto {
     export enum priority {

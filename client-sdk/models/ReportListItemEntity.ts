@@ -23,6 +23,8 @@ export type ReportListItemEntity = {
     groupId?: number;
     assignee?: UserCompactEntity;
     createdBy: UserCompactEntity;
+    phaseId?: number;
+    isProcessing?: boolean;
 };
 export namespace ReportListItemEntity {
     export enum type {

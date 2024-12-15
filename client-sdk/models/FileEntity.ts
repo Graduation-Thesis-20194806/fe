@@ -3,5 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type FileEntity = {
+    id: number;
+    name: string;
+    path: string;
 };
 

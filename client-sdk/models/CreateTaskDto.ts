@@ -14,7 +14,9 @@ export type CreateTaskDto = {
     references?: Array<string>;
     assignedTo?: number;
     tags?: Array<number>;
-    attachments?: Array<any[]>;
+    attachments?: Array<number>;
+    reportId?: number;
+    phaseId?: number;
 };
 export namespace CreateTaskDto {
     export enum priority {

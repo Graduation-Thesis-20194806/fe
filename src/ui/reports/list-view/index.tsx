@@ -63,6 +63,7 @@ const ListView = () => {
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.TABLE);
   const [role, setrole] = useQueryState("role", { defaultValue: "owner" });
   const [page, setpage] = useQueryState("page", parseAsInteger.withDefault(1));
+  const [phaseId, setphaseId] = useQueryState("phaseId", parseAsInteger);
   const [groupId, setgroupId] = useQueryState("groupId", parseAsInteger);
   const [severity, setseverity] = useQueryState(
     "severity",
@@ -120,6 +121,7 @@ const ListView = () => {
       status,
       keyword,
       page,
+      phaseId,
     ],
     queryFn: async () => {
       if (!project_id) return { total: 0, items: [] };
@@ -132,7 +134,8 @@ const ListView = () => {
         severity ?? undefined,
         issueType ?? undefined,
         status ?? undefined,
-        keyword ?? undefined
+        keyword ?? undefined,
+        phaseId ?? undefined
       );
       return res;
     },
@@ -149,6 +152,7 @@ const ListView = () => {
       severity,
       issueType,
       keyword,
+      phaseId,
     ],
     queryFn: async ({ pageParam }) => {
       if (!project_id) return [];
@@ -161,7 +165,8 @@ const ListView = () => {
         severity ?? undefined,
         issueType ?? undefined,
         undefined,
-        keyword ?? undefined
+        keyword ?? undefined,
+        phaseId ?? undefined
       );
       return res.items;
     },
@@ -179,9 +184,19 @@ const ListView = () => {
       return res.items;
     },
   });
+  const { data: phases } = useQuery({
+    queryKey: ["list-phases", project_id],
+    queryFn: async () => {
+      const res = await ProjectsService.projectsControllerFindAllPhases(
+        Number(project_id.toString())
+      );
+      return res;
+    },
+  });
   const onMoveStatus = useCallback(
     async (id: string, status: string) => {
       const item = tasks?.items.find((item) => item.id.toString() === id);
+      if (!item) return;
       if (item?.status !== status)
         await ReportsService.reportsControllerUpdateReport(
           project_id.toString(),
@@ -307,11 +322,20 @@ const ListView = () => {
     {
       key: "action",
       title: "Action",
-      render: () => {
+      render: (_, { id }) => {
         return (
           <Space>
             <Button icon={<DeleteOutlined />} />
-            <Button icon={<PlusOutlined />}>Task</Button>
+            <Button
+              icon={<PlusOutlined />}
+              onClick={() =>
+                router.push(
+                  `/project/${project_id}/tasks/create?reportId=${id}`
+                )
+              }
+            >
+              Task
+            </Button>
           </Space>
         );
       },
@@ -344,6 +368,22 @@ const ListView = () => {
               setrole(value, { history: "push" });
               setpage(1, { history: "push" });
             }}
+          />
+          <AppSelect
+            value={phaseId}
+            onChange={(value) => {
+              setphaseId(value, { history: "push" });
+              setpage(1, { history: "push" });
+            }}
+            options={[
+              { label: "All Phase", value: null },
+              ...(phases?.map((item) => ({
+                label: item.name,
+                value: item.id,
+              })) ?? []),
+              { label: "Unknown", value: 0 },
+            ]}
+            className="w-[120px] h-[32px]"
           />
           <AppSelect
             value={issueType}
@@ -393,7 +433,12 @@ const ListView = () => {
             size="small"
             className="w-fit"
           />
-          <AppButton text="Add New" icon={<PlusOutlined />} size="small" />
+          <AppButton
+            text="Add New"
+            icon={<PlusOutlined />}
+            size="small"
+            onClick={() => onFieldItemClick()}
+          />
         </Space>
       </div>
       {viewMode == ViewMode.KANBAN && (
@@ -428,7 +473,11 @@ const ListView = () => {
         />
       )}
       <Drawer title="Bug Report" onClose={onClose} open={open}>
-        <ReportForm reportid={reportId?.toString()} members={members} />
+        <ReportForm
+          reportid={reportId?.toString()}
+          members={members}
+          phases={phases ?? []}
+        />
       </Drawer>
     </PageContainer>
   );

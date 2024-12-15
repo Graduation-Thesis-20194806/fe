@@ -2,10 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { FileEntity } from './FileEntity';
 import type { ProjectMemberEntity } from './ProjectMemberEntity';
+import type { TaskAttachmentEntity } from './TaskAttachmentEntity';
 import type { TaskCommentsEntity } from './TaskCommentsEntity';
 export type TaskFullEntity = {
+    id: number;
     name: string;
     description: string;
     estimateTime?: number;
@@ -19,7 +20,10 @@ export type TaskFullEntity = {
     Assignee?: ProjectMemberEntity;
     ProjectMember: ProjectMemberEntity;
     tags?: Array<number>;
-    TaskAttachment: Array<FileEntity>;
+    Report: Record<string, any>;
+    reportId: number;
+    phaseId?: number;
+    TaskAttachment: Array<TaskAttachmentEntity>;
     TaskComment: Array<TaskCommentsEntity>;
 };
 export namespace TaskFullEntity {

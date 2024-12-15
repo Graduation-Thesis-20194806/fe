@@ -5,28 +5,43 @@ import {
   useWatch,
 } from "react-hook-form";
 import TitleWrapper from "@/common/components/TitleWrapper";
-import { Button, Flex, Image, Input, Radio, Segmented, Upload } from "antd";
+import {
+  Button,
+  Flex,
+  Image,
+  Input,
+  Radio,
+  Segmented,
+  Select,
+  Spin,
+  Upload,
+} from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { DeleteOutlined, UploadOutlined } from "@ant-design/icons";
 import { ViewMode } from ".";
 import {
   MemberPaginateEntity,
+  PhaseEntity,
   ReportListItemEntity,
   UpdateReportDto,
 } from "../../../../client-sdk";
-import AppSelect from "@/common/components/AppSelect";
 import { issueTypeList, severityList, statusList } from "../constant";
+import { useMemo } from "react";
 type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handleUpload: (file: any) => void;
   onChangeViewMode: (value: ViewMode) => void;
   members?: MemberPaginateEntity["items"];
+  phases: PhaseEntity[];
+  isProcessing: boolean;
 };
 
 export function ReportEditView({
   handleUpload,
   onChangeViewMode,
   members,
+  phases,
+  isProcessing,
 }: Props) {
   const {
     control,
@@ -39,6 +54,15 @@ export function ReportEditView({
     control,
     name: "additionInfo.domPosition",
   });
+  const phaseOptions = useMemo(() => {
+    return [
+      { label: "Unknown", value: undefined },
+      ...phases.map((item) => ({
+        label: item.name,
+        value: item.id,
+      })),
+    ];
+  }, [phases]);
   return (
     <div>
       <div className="flex flex-col gap-3">
@@ -55,9 +79,23 @@ export function ReportEditView({
         <Controller
           control={control}
           name="url"
-          render={({ field: { value } }) => (
+          render={({ field: { value, onChange } }) => (
             <TitleWrapper label="Current Url">
-              <Input value={value} disabled />
+              <Input value={value} onChange={onChange} />
+            </TitleWrapper>
+          )}
+        />
+        <Controller
+          control={control}
+          name="phaseId"
+          render={({ field: { value, onChange } }) => (
+            <TitleWrapper label="Phase">
+              <Select
+                value={value}
+                onChange={onChange}
+                options={phaseOptions}
+                className="w-full"
+              />
             </TitleWrapper>
           )}
         />
@@ -100,26 +138,32 @@ export function ReportEditView({
           )}
         />
         <Flex align="center" justify="flex-start" gap={20}>
-          <TitleWrapper label="Issue Type">
+          <TitleWrapper label="Issue Type" className="relative">
             <Controller
               control={control}
               name="issueType"
               render={({ field: { value, onChange } }) => (
-                <AppSelect
+                <Select
                   value={value}
                   onChange={onChange}
                   options={issueTypeList}
                   className="w-[150px]"
+                  disabled={isProcessing}
                 />
               )}
             />
+            {isProcessing && (
+              <div className="absolute right-0 top-0 w-fit h-fit">
+                <Spin size="small" />{" "}
+              </div>
+            )}
           </TitleWrapper>
           <TitleWrapper label="Severity">
             <Controller
               control={control}
               name="severity"
               render={({ field: { value, onChange } }) => (
-                <AppSelect
+                <Select
                   value={value}
                   onChange={onChange}
                   options={severityList}
@@ -135,7 +179,7 @@ export function ReportEditView({
               control={control}
               name="status"
               render={({ field: { value, onChange } }) => (
-                <AppSelect
+                <Select
                   value={value}
                   onChange={onChange}
                   options={statusList}
@@ -149,7 +193,7 @@ export function ReportEditView({
               control={control}
               name="assignedTo"
               render={({ field: { value, onChange } }) => (
-                <AppSelect
+                <Select
                   value={value}
                   onChange={onChange}
                   options={members?.map((item) => ({

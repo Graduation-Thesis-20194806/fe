@@ -16,6 +16,9 @@ export class TasksService {
      * @param page
      * @param pageSize
      * @param keyword
+     * @param categoryId
+     * @param statusId
+     * @param phaseId
      * @returns TaskPaginationEntity
      * @throws ApiError
      */
@@ -25,6 +28,9 @@ export class TasksService {
         page?: number,
         pageSize?: number,
         keyword?: string,
+        categoryId?: number,
+        statusId?: number,
+        phaseId?: number,
     ): CancelablePromise<TaskPaginationEntity> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -37,20 +43,28 @@ export class TasksService {
                 'pageSize': pageSize,
                 'role': role,
                 'keyword': keyword,
+                'categoryId': categoryId,
+                'statusId': statusId,
+                'phaseId': phaseId,
             },
         });
     }
     /**
+     * @param projectid
      * @param requestBody
      * @returns TaskFullEntity
      * @throws ApiError
      */
     public static tasksControllerCreateTask(
+        projectid: string,
         requestBody: CreateTaskDto,
     ): CancelablePromise<TaskFullEntity> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/projects/{projectid}/tasks/me',
+            path: {
+                'projectid': projectid,
+            },
             body: requestBody,
             mediaType: 'application/json',
         });

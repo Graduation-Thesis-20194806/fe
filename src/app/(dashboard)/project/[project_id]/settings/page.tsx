@@ -1,5 +1,11 @@
-const SettingsPage = ()=>{
-    return <></>
-}
+import SettingsContainer from "@/ui/settings";
 
-export default SettingsPage
+const SettingsPage = () => {
+  return (
+    <>
+      <SettingsContainer />
+    </>
+  );
+};
+
+export default SettingsPage;

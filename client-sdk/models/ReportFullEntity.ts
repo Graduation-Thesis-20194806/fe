@@ -25,6 +25,8 @@ export type ReportFullEntity = {
     groupId?: number;
     assignee?: UserCompactEntity;
     createdBy: UserCompactEntity;
+    phaseId?: number;
+    isProcessing?: boolean;
     ReportImage: Array<ReportImageEntity>;
     ReportComment: Array<ReportCommentsEntity>;
 };

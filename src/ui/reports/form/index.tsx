@@ -2,8 +2,10 @@
 import { FormProvider, useForm } from "react-hook-form";
 import {
   CreateCommentDto,
+  CreateReportDto,
   FilesService,
   MemberPaginateEntity,
+  PhaseEntity,
   ReportCommentsEntity,
   ReportCommentsService,
   ReportFullEntity,
@@ -15,7 +17,7 @@ import { ReportEditView } from "./ReportEditView";
 import Comments from "./Comments";
 import { useBoundStore } from "@/store";
 import { useParams } from "next/navigation";
-import { UploadFile } from "antd";
+import { message, UploadFile } from "antd";
 import axios from "axios";
 
 export enum ViewMode {
@@ -35,7 +37,8 @@ const dtoFields = [
   "additionInfo",
   "url",
   "status",
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  "phaseId",
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ] as any[];
 const changeToUpdateReportDto = (data: ReportFullEntity): UpdateReportDto => {
   const result = {} as UpdateReportDto;
@@ -58,14 +61,17 @@ const changeToUpdateReportDto = (data: ReportFullEntity): UpdateReportDto => {
 const ReportForm = ({
   reportid,
   members,
+  phases,
 }: {
   reportid?: string;
   members?: MemberPaginateEntity["items"];
+  phases: PhaseEntity[];
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.REPORT);
   const [comments, setComments] = useState<
     ReportCommentsEntity[] | undefined
   >();
+  const [isProcessing, setProcessing] = useState(false);
   const methods = useForm<UpdateReportDto>();
   const { handleSubmit, reset, getValues, setValue } = methods;
   const onChangeViewMode = (value: ViewMode) => setViewMode(value);
@@ -80,6 +86,11 @@ const ReportForm = ({
           data
         );
         reset(changeToUpdateReportDto(res));
+        message.success("Update successfully");
+      }else {
+        const res = await ReportsService.reportsControllerCreateReport(project_id.toString(), data as CreateReportDto)
+        reset(changeToUpdateReportDto(res));
+        message.success("Create successfully");
       }
     },
     [reportid, project_id]
@@ -90,13 +101,14 @@ const ReportForm = ({
         (res) => {
           reset(changeToUpdateReportDto(res));
           setComments(res.ReportComment);
+          setProcessing(res.isProcessing ?? false);
         }
       );
     }
   }, [reportid]);
   const handleUpload = useCallback(
     async (file: UploadFile) => {
-      const fileName = file.fileName ?? `upload-${new Date().toUTCString()}`;
+      const fileName = file.name ?? `upload-${new Date().toUTCString()}`;
       const res = await FilesService.filesControllerGetPresignedUrl(
         `bug-report/${userId}/${fileName}`
       );
@@ -174,6 +186,8 @@ const ReportForm = ({
             onChangeViewMode={onChangeViewMode}
             handleUpload={handleUpload}
             members={members}
+            phases={phases}
+            isProcessing={isProcessing}
           />
         </form>
       </FormProvider>

@@ -1,10 +1,12 @@
-'use client'
-import { useParams } from "next/navigation"
+"use client";
+import DashboardContainer from "@/ui/dashboard/Dashboard";
 
-const ProjectDashboard = ()=>{
-    const param = useParams()
-    console.log(param)
-    return <div className="text-red-100">This is project dashboard</div>
-}
+const ProjectDashboard = () => {
+  return (
+    <>
+      <DashboardContainer />
+    </>
+  );
+};
 
-export default ProjectDashboard
+export default ProjectDashboard;

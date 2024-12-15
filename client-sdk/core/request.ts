@@ -212,7 +212,7 @@ export const getHeaders = async (
   formData?: FormData
 ): Promise<Record<string, string>> => {
   const [token, username, password, additionalHeaders] = await Promise.all([
-    resolve(options, config.TOKEN),
+    resolve(options, getStorage('token','local')),
     resolve(options, config.USERNAME),
     resolve(options, config.PASSWORD),
     resolve(options, config.HEADERS),

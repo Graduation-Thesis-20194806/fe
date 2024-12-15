@@ -19,5 +19,6 @@ export type CreateReportDto = {
     status?: string;
     images?: Array<CreateReportImageDto>;
     tags?: Array<string>;
+    phaseId?: number;
 };
 

@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { ProjectMemberEntity } from './ProjectMemberEntity';
 export type TaskListItemEntity = {
+    id: number;
     name: string;
     description: string;
     estimateTime?: number;
@@ -17,6 +18,9 @@ export type TaskListItemEntity = {
     Assignee?: ProjectMemberEntity;
     ProjectMember: ProjectMemberEntity;
     tags?: Array<number>;
+    Report: Record<string, any>;
+    reportId: number;
+    phaseId?: number;
 };
 export namespace TaskListItemEntity {
     export enum priority {

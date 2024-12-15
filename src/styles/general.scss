@@ -21,3 +21,21 @@ h3.app-title {
     margin-bottom: 1rem;
   }
 }
+
+.project-thumbnail {
+  position: relative;
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+  }
+}
+
+.app-card.ant-card {
+  .ant-card-head {
+    border-bottom: none;
+  }
+}

@@ -6,6 +6,7 @@ import { useBoundStore } from "@/store";
 import {
   CalendarOutlined,
   ExceptionOutlined,
+  FolderOutlined,
   FundOutlined,
   SettingOutlined,
   UsergroupAddOutlined,
@@ -51,33 +52,33 @@ const AppMenu = () => {
       ),
       getItem(
         "Bug Reports",
-        [
-          `/project/${project_id}/reports`,
-          `/project/${project_id}/reports/statistic`,
-        ],
-        undefined,
-        <ExceptionOutlined />,
-        [
-          getItem(
-            "List View",
-            [`/project/${project_id}/reports`],
-            `/project/${project_id}/reports`
-          ),
-          getItem(
-            "Statistic",
-            [`/project/${project_id}/reports/statistic`],
-            `/project/${project_id}/reports/statistic`
-          ),
-        ]
+        [`/project/${project_id}/reports`],
+        `/project/${project_id}/reports`,
+        <ExceptionOutlined />
       ),
     ];
     if (user_role === RoleEntity.category.GUEST) return baseItems;
     baseItems.push(
       getItem(
         "Tasks",
-        [`/project/${project_id}/tasks`],
-        `/project/${project_id}/tasks`,
-        <CalendarOutlined />
+        [
+          `/project/${project_id}/tasks`,
+          `/project/${project_id}/tasks/statistic`,
+        ],
+        undefined,
+        <CalendarOutlined />,
+        [
+          getItem(
+            "List View",
+            [`/project/${project_id}/tasks`],
+            `/project/${project_id}/tasks`
+          ),
+          getItem(
+            "Statistic",
+            [`/project/${project_id}/tasks/statistic`],
+            `/project/${project_id}/tasks/statistic`
+          ),
+        ]
       )
     );
     if (user_role === RoleEntity.category.MEMBER) return baseItems;
@@ -88,7 +89,19 @@ const AppMenu = () => {
         `/project/${project_id}/members`,
         <UsergroupAddOutlined />
       ),
-      getItem("Settings", [`/project/${project_id}/settings`],`/project/${project_id}/settings`, <SettingOutlined/> )
+      getItem(
+        "Files & Folders",
+        [`/project/${project_id}/files`],
+        `/project/${project_id}/files`,
+        <FolderOutlined />
+      ),
+
+      getItem(
+        "Settings",
+        [`/project/${project_id}/settings`],
+        `/project/${project_id}/settings`,
+        <SettingOutlined />
+      )
     );
     if (user_role === RoleEntity.category.OWNER) return baseItems;
     return [];

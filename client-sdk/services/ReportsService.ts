@@ -20,6 +20,7 @@ export class ReportsService {
      * @param issueType
      * @param status
      * @param keyword
+     * @param phaseId
      * @returns ReportPaginationEntity
      * @throws ApiError
      */
@@ -33,6 +34,7 @@ export class ReportsService {
         issueType?: 'UI' | 'FUNCTIONAL' | 'PERFORMANCE' | 'SECURITY' | 'NETWORK' | 'DATA' | 'OTHER',
         status?: 'INIT' | 'CONFIRMING' | 'IN_PROCESSING' | 'REJECTED' | 'DONE',
         keyword?: string,
+        phaseId?: number,
     ): CancelablePromise<ReportPaginationEntity> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -49,20 +51,26 @@ export class ReportsService {
                 'issueType': issueType,
                 'status': status,
                 'keyword': keyword,
+                'phaseId': phaseId,
             },
         });
     }
     /**
+     * @param projectid
      * @param requestBody
      * @returns ReportFullEntity
      * @throws ApiError
      */
     public static reportsControllerCreateReport(
+        projectid: string,
         requestBody: CreateReportDto,
     ): CancelablePromise<ReportFullEntity> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/projects/{projectid}/reports/me',
+            path: {
+                'projectid': projectid,
+            },
             body: requestBody,
             mediaType: 'application/json',
         });

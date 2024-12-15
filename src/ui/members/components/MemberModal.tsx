@@ -1,5 +1,5 @@
 import BoxContainer from "@/common/components/container/BoxContainer";
-import { Modal } from "antd";
+import { Alert, Modal, Typography } from "antd";
 import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -7,6 +7,7 @@ import { ProjectsService, RoleEntity } from "../../../../client-sdk";
 import AppInput from "@/common/components/AppInput";
 import AppSelect from "@/common/components/AppSelect";
 import AppButton from "@/common/components/AppButton";
+import { CopyOutlined } from "@ant-design/icons";
 
 type Props = {
   isOpen: boolean;
@@ -28,13 +29,20 @@ const MemberModal = ({ isOpen, onClose, projectId, roles }: Props) => {
     formState: { errors },
   } = useForm<InvitationDto>();
   const [invitationLink, setInvitationLink] = useState<string>();
+  const [alert, setAlert] = useState<any>();
   const onSubmit = useCallback(
     async (data: InvitationDto) => {
-      const res = await ProjectsService.projectsControllerGetInvitationLink(
+      setAlert(undefined);
+      setInvitationLink(undefined);
+      const res = (await ProjectsService.projectsControllerGetInvitationLink(
         projectId,
         data.email,
         Number(data.roleId)
-      );
+      )) as any;
+      setAlert({
+        type: "success",
+        message: "Invite successfully!",
+      });
       if (res?.invitationLink) setInvitationLink(res.invitationLink);
     },
     [projectId]
@@ -49,7 +57,10 @@ const MemberModal = ({ isOpen, onClose, projectId, roles }: Props) => {
     >
       <BoxContainer level={2} title="Add or invite people">
         <p className="mb-4">Invite new Members & Guests to this Project.</p>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        {alert && (
+          <Alert type={alert.type} message={alert.message} className="mb-4" />
+        )}
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <div className="flex gap-2">
             <Controller
               control={control}
@@ -91,6 +102,25 @@ const MemberModal = ({ isOpen, onClose, projectId, roles }: Props) => {
             <AppButton htmlType="submit" text="Invite" />
           </div>
         </form>
+        {invitationLink && (
+          <div className="bg-[#f1f1f1] flex rounded-[6px] px-3 py-2 gap-2 w-full justify-between items-center">
+            <Typography.Text className="flex-grow" ellipsis>
+              {invitationLink}
+            </Typography.Text>{" "}
+            <span
+              onClick={() => {
+                navigator.clipboard.writeText(invitationLink);
+                setAlert({
+                  type: "info",
+                  message: "Copied to your clipboard"
+                })
+              }}
+              className="cursor-pointer"
+            >
+              <CopyOutlined />
+            </span>
+          </div>
+        )}
       </BoxContainer>
     </Modal>
   );

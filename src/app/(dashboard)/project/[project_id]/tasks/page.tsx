@@ -1,5 +1,8 @@
-const TasksPage = ()=>{
-    return <></>
-}
+"use client";
+import TaskManagementContainer from "@/ui/tasks";
 
-export default TasksPage
+const TasksPage = () => {
+  return <><TaskManagementContainer/></>;
+};
+
+export default TasksPage;
