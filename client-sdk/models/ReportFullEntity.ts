@@ -3,7 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ReportCommentsEntity } from './ReportCommentsEntity';
+import type { ReportCompactEntity } from './ReportCompactEntity';
+import type { ReportDuplicateEntity } from './ReportDuplicateEntity';
 import type { ReportImageEntity } from './ReportImageEntity';
+import type { TaskCompactEntity } from './TaskCompactEntity';
 import type { UserCompactEntity } from './UserCompactEntity';
 export type ReportFullEntity = {
     id: number;
@@ -22,13 +25,15 @@ export type ReportFullEntity = {
     url: string;
     createdAt: string;
     updatedAt: string;
-    groupId?: number;
     assignee?: UserCompactEntity;
     createdBy: UserCompactEntity;
     phaseId?: number;
     isProcessing?: boolean;
     ReportImage: Array<ReportImageEntity>;
     ReportComment: Array<ReportCommentsEntity>;
+    DuplicateGroup?: Array<ReportDuplicateEntity>;
+    children?: Array<ReportCompactEntity>;
+    Task?: Array<TaskCompactEntity>;
 };
 export namespace ReportFullEntity {
     export enum type {

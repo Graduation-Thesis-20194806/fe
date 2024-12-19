@@ -7,5 +7,6 @@ export type UpdateCategoryDto = {
      * The new name of the category
      */
     name?: string;
+    color?: string;
 };
 

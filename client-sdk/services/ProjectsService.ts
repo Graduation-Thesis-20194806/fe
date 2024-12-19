@@ -6,12 +6,14 @@ import type { AssignIssueTypeDto } from '../models/AssignIssueTypeDto';
 import type { CategoryEntity } from '../models/CategoryEntity';
 import type { CreateCategoryDto } from '../models/CreateCategoryDto';
 import type { CreatePhaseDto } from '../models/CreatePhaseDto';
+import type { CreateProjectDomainDto } from '../models/CreateProjectDomainDto';
 import type { CreateProjectDto } from '../models/CreateProjectDto';
 import type { CreateProjectStatusDto } from '../models/CreateProjectStatusDto';
 import type { CreateRoleDto } from '../models/CreateRoleDto';
 import type { GeneralResult } from '../models/GeneralResult';
 import type { MemberPaginateEntity } from '../models/MemberPaginateEntity';
 import type { PhaseEntity } from '../models/PhaseEntity';
+import type { ProjectDomainEntity } from '../models/ProjectDomainEntity';
 import type { ProjectEntity } from '../models/ProjectEntity';
 import type { ProjectPaginateEntity } from '../models/ProjectPaginateEntity';
 import type { RoleEntity } from '../models/RoleEntity';
@@ -19,6 +21,8 @@ import type { StatusEntity } from '../models/StatusEntity';
 import type { UpdateAssignDto } from '../models/UpdateAssignDto';
 import type { UpdateCategoryDto } from '../models/UpdateCategoryDto';
 import type { UpdatePhaseDto } from '../models/UpdatePhaseDto';
+import type { UpdateProjectDomainDto } from '../models/UpdateProjectDomainDto';
+import type { UpdateProjectDto } from '../models/UpdateProjectDto';
 import type { UpdateStatusDto } from '../models/UpdateStatusDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -27,12 +31,14 @@ export class ProjectsService {
     /**
      * @param page
      * @param pageSize
+     * @param keyword
      * @returns ProjectPaginateEntity
      * @throws ApiError
      */
     public static projectsControllerListProjects(
         page?: number,
         pageSize?: number,
+        keyword?: string,
     ): CancelablePromise<ProjectPaginateEntity> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -40,6 +46,7 @@ export class ProjectsService {
             query: {
                 'page': page,
                 'pageSize': pageSize,
+                'keyword': keyword,
             },
         });
     }
@@ -71,6 +78,50 @@ export class ProjectsService {
             url: '/projects/me/{id}',
             path: {
                 'id': id,
+            },
+        });
+    }
+    /**
+     * Update an existing project
+     * @param id
+     * @param requestBody
+     * @returns ProjectEntity Project updated successfully.
+     * @throws ApiError
+     */
+    public static projectsControllerUpdateProject(
+        id: string,
+        requestBody: UpdateProjectDto,
+    ): CancelablePromise<ProjectEntity> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/projects/me/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                404: `Project not found.`,
+            },
+        });
+    }
+    /**
+     * Delete a project
+     * @param id
+     * @returns any Project deleted successfully.
+     * @throws ApiError
+     */
+    public static projectsControllerDeleteProject(
+        id: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/projects/me/{id}',
+            path: {
+                'id': id,
+            },
+            errors: {
+                404: `Project not found.`,
             },
         });
     }
@@ -646,6 +697,134 @@ export class ProjectsService {
             path: {
                 'projectId': projectId,
                 'assignId': assignId,
+            },
+        });
+    }
+    /**
+     * Create a new ProjectDomain
+     * @param projectId
+     * @param requestBody
+     * @returns ProjectDomainEntity ProjectDomain created successfully.
+     * @throws ApiError
+     */
+    public static projectsControllerCreateProjectDomain(
+        projectId: string,
+        requestBody: CreateProjectDomainDto,
+    ): CancelablePromise<ProjectDomainEntity> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/projects/{projectId}/domains',
+            path: {
+                'projectId': projectId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Get all ProjectDomains
+     * @param projectId
+     * @returns ProjectDomainEntity List of ProjectDomains.
+     * @throws ApiError
+     */
+    public static projectsControllerFindAllProjectDomains(
+        projectId: string,
+    ): CancelablePromise<Array<ProjectDomainEntity>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/projects/{projectId}/domains',
+            path: {
+                'projectId': projectId,
+            },
+        });
+    }
+    /**
+     * Get a ProjectDomain by its ID
+     * @param id
+     * @param projectId
+     * @returns ProjectDomainEntity ProjectDomain found.
+     * @throws ApiError
+     */
+    public static projectsControllerFindOneProjectDomain(
+        id: string,
+        projectId: string,
+    ): CancelablePromise<ProjectDomainEntity> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/projects/{projectId}/domains/{id}',
+            path: {
+                'id': id,
+                'projectId': projectId,
+            },
+            errors: {
+                404: `ProjectDomain not found.`,
+            },
+        });
+    }
+    /**
+     * Update a ProjectDomain
+     * @param id
+     * @param projectId
+     * @param requestBody
+     * @returns ProjectDomainEntity ProjectDomain updated successfully.
+     * @throws ApiError
+     */
+    public static projectsControllerUpdateProjectDomain(
+        id: string,
+        projectId: string,
+        requestBody: UpdateProjectDomainDto,
+    ): CancelablePromise<ProjectDomainEntity> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/projects/{projectId}/domains/{id}',
+            path: {
+                'id': id,
+                'projectId': projectId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                404: `ProjectDomain not found.`,
+            },
+        });
+    }
+    /**
+     * Delete a ProjectDomain
+     * @param id
+     * @param projectId
+     * @returns any ProjectDomain deleted successfully.
+     * @throws ApiError
+     */
+    public static projectsControllerDeleteProjectDomain(
+        id: string,
+        projectId: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/projects/{projectId}/domains/{id}',
+            path: {
+                'id': id,
+                'projectId': projectId,
+            },
+            errors: {
+                404: `ProjectDomain not found.`,
+            },
+        });
+    }
+    /**
+     * Get Project by Url
+     * @param domain
+     * @returns ProjectEntity
+     * @throws ApiError
+     */
+    public static projectsControllerGetProjectByUrl(
+        domain: string,
+    ): CancelablePromise<ProjectEntity> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/projects/me/by-domain',
+            query: {
+                'domain': domain,
             },
         });
     }

@@ -8,9 +8,9 @@ export type UserRoleEntity = {
 };
 export namespace UserRoleEntity {
     export enum category {
-        OWNER = 'OWNER',
         MEMBER = 'MEMBER',
         GUEST = 'GUEST',
+        OWNER = 'OWNER',
     }
 }
 

@@ -6,10 +6,14 @@ import {
   FilesService,
   MemberPaginateEntity,
   PhaseEntity,
+  ProjectsService,
   ReportCommentsEntity,
   ReportCommentsService,
+  ReportCompactEntity,
+  ReportDuplicateEntity,
   ReportFullEntity,
   ReportsService,
+  TaskCompactEntity,
   UpdateReportDto,
 } from "../../../../client-sdk";
 import { useCallback, useEffect, useState } from "react";
@@ -19,6 +23,8 @@ import { useBoundStore } from "@/store";
 import { useParams } from "next/navigation";
 import { message, UploadFile } from "antd";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import PageContainer from "@/common/components/container/PageContainer";
 
 export enum ViewMode {
   REPORT = "REPORT",
@@ -58,25 +64,43 @@ const changeToUpdateReportDto = (data: ReportFullEntity): UpdateReportDto => {
   return result;
 };
 
-const ReportForm = ({
-  reportid,
-  members,
-  phases,
-}: {
-  reportid?: string;
-  members?: MemberPaginateEntity["items"];
-  phases: PhaseEntity[];
-}) => {
+const ReportForm = ({ reportid }: { reportid?: string }) => {
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.REPORT);
   const [comments, setComments] = useState<
     ReportCommentsEntity[] | undefined
   >();
+  const [tasks, setTasks] = useState<TaskCompactEntity[] | undefined>();
+  const [childrenReport, setChildrenReport] = useState<
+    ReportCompactEntity[] | undefined
+  >();
+  const [duplicateReport, setDuplicateReport] = useState<
+    ReportDuplicateEntity[] | undefined
+  >();
+  const [disableEdit, setDisableEdit] = useState(false);
   const [isProcessing, setProcessing] = useState(false);
   const methods = useForm<UpdateReportDto>();
-  const { handleSubmit, reset, getValues, setValue } = methods;
+  const { handleSubmit, reset, getValues, setValue, watch } = methods;
   const onChangeViewMode = (value: ViewMode) => setViewMode(value);
   const { userId } = useBoundStore();
   const { project_id } = useParams();
+  const { data: members } = useQuery({
+    queryKey: ["list-members", project_id],
+    queryFn: async () => {
+      const res = await ProjectsService.projectsControllerGetMembers(
+        project_id.toString()
+      );
+      return res.items;
+    },
+  });
+  const { data: phases } = useQuery({
+    queryKey: ["list-phases", project_id],
+    queryFn: async () => {
+      const res = await ProjectsService.projectsControllerFindAllPhases(
+        Number(project_id.toString())
+      );
+      return res;
+    },
+  });
   const onSubmit = useCallback(
     async (data: UpdateReportDto) => {
       if (reportid) {
@@ -87,25 +111,34 @@ const ReportForm = ({
         );
         reset(changeToUpdateReportDto(res));
         message.success("Update successfully");
-      }else {
-        const res = await ReportsService.reportsControllerCreateReport(project_id.toString(), data as CreateReportDto)
+      } else {
+        const res = await ReportsService.reportsControllerCreateReport(
+          project_id.toString(),
+          data as CreateReportDto
+        );
         reset(changeToUpdateReportDto(res));
         message.success("Create successfully");
       }
     },
     [reportid, project_id]
   );
-  useEffect(() => {
-    if (reportid) {
-      ReportsService.reportsControllerGetMyReport(reportid.toString()).then(
-        (res) => {
-          reset(changeToUpdateReportDto(res));
-          setComments(res.ReportComment);
-          setProcessing(res.isProcessing ?? false);
-        }
-      );
-    }
+
+  const refetch = useCallback(async () => {
+    if (!reportid) return;
+    const res = await ReportsService.reportsControllerGetMyReport(
+      reportid.toString()
+    );
+    if (res.createdById !== userId) setDisableEdit(true);
+    reset(changeToUpdateReportDto(res));
+    setComments(res.ReportComment);
+    setChildrenReport(res.children);
+    setTasks(res.Task);
+    setDuplicateReport(res.DuplicateGroup);
+    setProcessing(res.isProcessing ?? false);
   }, [reportid]);
+  useEffect(() => {
+    refetch();
+  }, [reportid, userId]);
   const handleUpload = useCallback(
     async (file: UploadFile) => {
       const fileName = file.name ?? `upload-${new Date().toUTCString()}`;
@@ -174,7 +207,7 @@ const ReportForm = ({
     [userId, reportid]
   );
   return (
-    <div>
+    <PageContainer title={reportid ? "Report" : "Create Report"}>
       <FormProvider {...methods}>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -186,12 +219,18 @@ const ReportForm = ({
             onChangeViewMode={onChangeViewMode}
             handleUpload={handleUpload}
             members={members}
-            phases={phases}
+            phases={phases ?? []}
             isProcessing={isProcessing}
+            disableEdit={disableEdit}
+            showComment={!!reportid && !!userId}
+            refetch={refetch}
+            tasks={tasks}
+            childrenReport={childrenReport}
+            duplicateReport={duplicateReport}
           />
         </form>
       </FormProvider>
-      {userId && (
+      {reportid && userId && (
         <Comments
           onEditComment={onEditComment}
           user_id={userId}
@@ -201,7 +240,7 @@ const ReportForm = ({
           onCreateComment={onCreateComment}
         />
       )}
-    </div>
+    </PageContainer>
   );
 };
 

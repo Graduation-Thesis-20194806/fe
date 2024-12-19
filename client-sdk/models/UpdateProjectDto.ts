@@ -3,9 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CreateProjectDomainDto } from './CreateProjectDomainDto';
-export type CreateProjectDto = {
-    name: string;
-    description: string;
+export type UpdateProjectDto = {
+    name?: string;
+    description?: string;
     projectThumbnail?: string;
     projectDomain?: Array<CreateProjectDomainDto>;
 };

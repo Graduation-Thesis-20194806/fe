@@ -7,5 +7,6 @@ export type UpdateStatusDto = {
      * The new name of the status
      */
     name?: string;
+    color?: string;
 };
 

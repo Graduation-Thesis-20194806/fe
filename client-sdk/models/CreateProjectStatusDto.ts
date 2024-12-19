@@ -7,5 +7,6 @@ export type CreateProjectStatusDto = {
      * The name of the status
      */
     name: string;
+    color?: string;
 };
 

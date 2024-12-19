@@ -10,9 +10,9 @@ export type RoleEntity = {
 };
 export namespace RoleEntity {
     export enum category {
-        OWNER = 'OWNER',
         MEMBER = 'MEMBER',
         GUEST = 'GUEST',
+        OWNER = 'OWNER',
     }
 }
 

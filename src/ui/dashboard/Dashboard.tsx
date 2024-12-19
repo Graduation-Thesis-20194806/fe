@@ -291,7 +291,9 @@ const DashboardContainer = () => {
               className="w-full mb-6 h-full bg-cover bg-no-repeat bg-center rounded-lg project-thumbnail p-4 overflow-hidden text-white"
               style={{
                 backgroundImage: `url('${
-                  project?.projectThumbnail ??
+                  project?.projectThumbnail
+                    ? getS3Link(project.projectThumbnail)
+                    :
                   `/images/sample/project_sample_${
                     Math.floor(Math.random() * 4) + 1
                   }.jpg`

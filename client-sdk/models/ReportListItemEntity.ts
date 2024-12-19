@@ -20,7 +20,6 @@ export type ReportListItemEntity = {
     url: string;
     createdAt: string;
     updatedAt: string;
-    groupId?: number;
     assignee?: UserCompactEntity;
     createdBy: UserCompactEntity;
     phaseId?: number;

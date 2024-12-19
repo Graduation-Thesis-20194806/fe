@@ -7,5 +7,6 @@ export type CreateCategoryDto = {
      * The name of the category
      */
     name: string;
+    color?: string;
 };
 

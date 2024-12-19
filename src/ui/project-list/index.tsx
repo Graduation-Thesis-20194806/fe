@@ -4,29 +4,33 @@ import {
   List,
   Segmented,
   Pagination,
-  Grid,
   Space,
   Input,
   Typography,
 } from "antd";
 import dayjs from "dayjs";
 import Link from "next/link";
-import { ProjectEntity, ProjectsService } from "../../../client-sdk";
+import { ProjectsService } from "../../../client-sdk";
 import { useQuery } from "@tanstack/react-query";
 import AppButton from "@/common/components/AppButton";
+import { getS3Link } from "@/common/helpers/link";
+import { useQueryState } from "nuqs";
 const { Title } = Typography;
 const PAGE_SIZE = 20;
 const MyProject = () => {
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [currentPage, setCurrentPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [keyword, setkeyword] = useQueryState("keyword");
+  const [_keyword, _setKeyword] = useState<string | undefined>();
 
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ["list-projects", currentPage],
+  const { data: projects } = useQuery({
+    queryKey: ["list-projects", currentPage, keyword],
     queryFn: async () => {
       const res = await ProjectsService.projectsControllerListProjects(
         currentPage,
-        PAGE_SIZE
+        PAGE_SIZE, 
+        keyword ?? undefined
       );
       setTotal(res.total);
       return res.items;
@@ -44,7 +48,9 @@ const MyProject = () => {
               className="h-[200px] object-cover"
               alt={project.name}
               src={
-                project.projectThumbnail ??
+                project.projectThumbnail
+                    ? getS3Link(project.projectThumbnail)
+                    :
                 `images/sample/project_sample_${
                   Math.floor(Math.random() * 4) + 1
                 }.jpg`
@@ -54,7 +60,11 @@ const MyProject = () => {
         >
           <Card.Meta
             title={<Link href={`/project/${project.id}`}>{project.name}</Link>}
-            description={project.description}
+            description={
+              <Typography.Paragraph ellipsis={{ rows: 4 }}>
+                {project.description}
+              </Typography.Paragraph>
+            }
           />
           <div style={{ marginTop: "8px", color: "rgba(0, 0, 0, 0.45)" }}>
             Created At: {dayjs(project.createdAt).format("YYYY/MM/DD")}
@@ -77,15 +87,20 @@ const MyProject = () => {
                 className="w-[80px] h-[60px] object-cover"
                 alt={project.name}
                 src={
-                  project.projectThumbnail ??
-                  `images/sample/project_sample_${
-                    Math.floor(Math.random() * 4) + 1
-                  }.jpg`
+                  project.projectThumbnail
+                    ? getS3Link(project.projectThumbnail)
+                    : `images/sample/project_sample_${
+                        Math.floor(Math.random() * 4) + 1
+                      }.jpg`
                 }
               />
             }
             title={<Link href={`/project/${project.id}`}>{project.name}</Link>}
-            description={project.description}
+            description={
+              <Typography.Paragraph ellipsis={{ rows: 2 }}>
+                {project.description}
+              </Typography.Paragraph>
+            }
           />
           <div style={{ color: "rgba(0, 0, 0, 0.45)" }}>
             Created At: {dayjs(project.createdAt).format("YYYY/MM/DD")}
@@ -100,8 +115,17 @@ const MyProject = () => {
       <Title>My Project</Title>
       <div className="flex justify-between">
         <Space>
-          <Input.Search className="app-input"/>
-          <AppButton text="Create New" size="small" />
+        <Input
+            value={_keyword}
+            onChange={(e) => _setKeyword(e.target.value)}
+            onPressEnter={() =>
+              setkeyword(_keyword ?? null, { history: "push" })
+            }
+            placeholder="Enter keyword"
+          />
+          <Link href={"/project/create"}>
+            <AppButton text="Create New" size="small" />
+          </Link>
         </Space>
         <Segmented
           options={[

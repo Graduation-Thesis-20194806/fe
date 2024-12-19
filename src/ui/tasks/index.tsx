@@ -4,6 +4,7 @@ import CreateIssuePage from "./forms";
 import {
   Avatar,
   Button,
+  ColorPicker,
   Drawer,
   Input,
   Segmented,
@@ -67,19 +68,11 @@ const TaskManagementContainer = () => {
     parseAsInteger
   );
   const [status, setStatus] = useState<string | undefined>();
+  const [statusColor, setStatusColor] = useState<string | undefined>();
   const [category, setCategory] = useState<string | undefined>();
+  const [categoryColor, setCategoryColor] = useState<string | undefined>();
   const [keyword, setkeyword] = useQueryState("keyword");
   const [_keyword, _setKeyword] = useState<string | undefined>();
-  const [open, setOpen] = useState<boolean>(false);
-  const [reportId, setReportId] = useState<number | undefined>();
-  const showDrawer = () => {
-    setOpen(true);
-  };
-
-  const onClose = () => {
-    setOpen(false);
-    setReportId(undefined);
-  };
   useEffect(() => _setKeyword(keyword ?? undefined), [keyword]);
   const roleList = useMemo(() => {
     const base = [
@@ -256,7 +249,7 @@ const TaskManagementContainer = () => {
         dataIndex: "statusId",
         title: "Status",
         render: (value) => (
-          <Tag>{statuses?.find((item) => item.id == value)?.name}</Tag>
+          <Tag color={statuses?.find((item) => item.id == value)?.color}>{statuses?.find((item) => item.id == value)?.name}</Tag>
         ),
       },
       {
@@ -271,17 +264,13 @@ const TaskManagementContainer = () => {
         key: "bugReport",
         title: "Report",
         render: (_, { Report, reportId }) => (
-          <Tag
-            className="cursor-pointer"
-            onClick={() => {
-              setReportId(reportId);
-              showDrawer();
-            }}
-          >
-            <Typography.Text ellipsis className="!text-[12px] !max-w-[100px]">
-              {Report.name}
-            </Typography.Text>
-          </Tag>
+          <Link href={`/project/${project_id}/reports/${reportId}`}>
+            <Tag className="cursor-pointer">
+              <Typography.Text ellipsis className="!text-[12px] !max-w-[100px]">
+                {Report.name}
+              </Typography.Text>
+            </Tag>
+          </Link>
         ),
       },
       {
@@ -302,18 +291,19 @@ const TaskManagementContainer = () => {
     if (!status) return;
     await ProjectsService.projectsControllerCreateStatus(
       project_id.toString(),
-      { name: status }
+      { name: status, color: statusColor }
     );
     await mutateStatus();
     setStatus(undefined);
+    setStatusColor(undefined)
   }, [project_id, status]);
   const onUpdateStatus = useCallback(
-    async (id: number, status?: string) => {
+    async (id: number, status?: string, color?: string) => {
       if (!status) return;
       await ProjectsService.projectsControllerUpdateStatus(
         id,
         project_id.toString(),
-        { name: status }
+        { name: status, color }
       );
       await mutateStatus();
     },
@@ -323,18 +313,19 @@ const TaskManagementContainer = () => {
     if (!category) return;
     await ProjectsService.projectsControllerCreateCategory(
       project_id.toString(),
-      { name: category }
+      { name: category, color: categoryColor }
     );
     await mutateCategory();
     setCategory(undefined);
+    setCategoryColor(undefined)
   }, [project_id, category]);
   const onUpdateCategory = useCallback(
-    async (id: number, category?: string) => {
+    async (id: number, category?: string, color?: string) => {
       if (!category) return;
       await ProjectsService.projectsControllerUpdateCategory(
         id,
         project_id.toString(),
-        { name: category }
+        { name: category, color }
       );
       await mutateCategory();
     },
@@ -358,7 +349,7 @@ const TaskManagementContainer = () => {
   return (
     <PageContainer
       title="Task Management"
-      className="!max-w-full !w-fit min-w-[1200px]"
+      className="!max-w-full !w-fit lg:min-w-[1200px]"
       sideChildren={
         <Segmented
           options={[
@@ -374,7 +365,7 @@ const TaskManagementContainer = () => {
       }
     >
       <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-        <Space className="items-center">
+        <Space className="items-center flex-wrap">
           <Segmented
             options={roleList}
             value={role}
@@ -496,18 +487,26 @@ const TaskManagementContainer = () => {
               <div className="flex flex-col gap-2">
                 {statuses?.map((item) => (
                   <EditableTag
+                    color={item.color}
                     className="inline-flex justify-between items-center h-8"
                     value={item.name}
-                    onUpdate={(value) => onUpdateStatus(item.id, value)}
+                    onUpdate={(value, color) => onUpdateStatus(item.id, value, color)}
+                    editable={!item.isCloseStatus}
                   />
                 ))}
-                <Input
-                  value={status}
-                  placeholder="Add Status"
-                  onPressEnter={(e) => onAddStatus()}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="rounded-none focus:shadow-none border-t-0 border-l-0 border-r-0"
-                />
+                <span className="inline-flex gap-2 items-center">
+                  <Input
+                    value={status}
+                    placeholder="Add Status"
+                    onPressEnter={(e) => onAddStatus()}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="rounded-none focus:shadow-none border-t-0 border-l-0 border-r-0"
+                  />
+                  <ColorPicker
+                    value={statusColor}
+                    onChange={(value) => setStatusColor(value.toHexString())}
+                  />
+                </span>
               </div>
             </TitleWrapper>
             <TitleWrapper label="Category">
@@ -516,28 +515,27 @@ const TaskManagementContainer = () => {
                   <EditableTag
                     className="inline-flex justify-between items-center h-8"
                     value={item.name}
-                    onUpdate={(value) => onUpdateCategory(item.id, value)}
+                    onUpdate={(value, color) => onUpdateCategory(item.id, value, color)}
                   />
                 ))}
-                <Input
-                  value={category}
-                  placeholder="Add Category"
-                  onPressEnter={(e) => onAddCategory()}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="rounded-none focus:shadow-none border-t-0 border-l-0 border-r-0"
-                />
+                <div className="inline-flex gap-2 items-center">
+                  <Input
+                    value={category}
+                    placeholder="Add Category"
+                    onPressEnter={(e) => onAddCategory()}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="rounded-none focus:shadow-none border-t-0 border-l-0 border-r-0"
+                  />
+                  <ColorPicker
+                    value={categoryColor}
+                    onChange={(value) => setCategoryColor(value.toHexString())}
+                  />
+                </div>
               </div>
             </TitleWrapper>
           </div>
         </div>
       )}
-      <Drawer title="Bug Report" onClose={onClose} open={open}>
-        <ReportForm
-          reportid={reportId?.toString()}
-          members={members}
-          phases={phases ?? []}
-        />
-      </Drawer>
     </PageContainer>
   );
 };

@@ -2,9 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type CategoryEntity = {
+export type TaskCompactEntity = {
     id: number;
     name: string;
-    color: string;
+    status?: string;
 };
 

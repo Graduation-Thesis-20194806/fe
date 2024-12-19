@@ -22,12 +22,10 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import ReportForm from "../form";
 import PageContainer from "@/common/components/container/PageContainer";
 import AppButton from "@/common/components/AppButton";
 import {
   DeleteOutlined,
-  ExportOutlined,
   LeftOutlined,
   PlusOutlined,
   UndoOutlined,
@@ -40,6 +38,12 @@ import { useBoundStore } from "@/store";
 import AppSelect from "@/common/components/AppSelect";
 import { issueTypeList, severityList, statusList } from "../constant";
 import { getPriorityIconByID } from "@/common/components/KanBan/TasksItem";
+import {
+  REPORT_ISSUE_COLOR_MAP,
+  REPORT_STATUS_COLOR_MAP,
+  REPORT_TYPE_COLOR_MAP,
+} from "@/common/constants";
+import Link from "next/link";
 export const columns = [
   { id: ReportListItemEntity.status.INIT, name: "Backlog", order: 1 },
   { id: ReportListItemEntity.status.CONFIRMING, name: "Confirming", order: 2 },
@@ -58,13 +62,10 @@ enum ViewMode {
 const ListView = () => {
   const { user_role } = useBoundStore();
   const { project_id } = useParams();
-  const [reportId, setReportId] = useState<number | undefined>();
-  const [open, setOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.TABLE);
   const [role, setrole] = useQueryState("role", { defaultValue: "owner" });
   const [page, setpage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [phaseId, setphaseId] = useQueryState("phaseId", parseAsInteger);
-  const [groupId, setgroupId] = useQueryState("groupId", parseAsInteger);
   const [severity, setseverity] = useQueryState(
     "severity",
     parseAsStringEnum<ReportListItemEntity.severity>(
@@ -87,26 +88,19 @@ const ListView = () => {
   const [_keyword, _setKeyword] = useState<string | undefined>();
   const router = useRouter();
   useEffect(() => _setKeyword(keyword ?? undefined), [keyword]);
-  const showDrawer = () => {
-    setOpen(true);
-  };
-
-  const onClose = () => {
-    setOpen(false);
-  };
   const roleList = useMemo(() => {
     const base = [
       {
         label: "Owner",
         value: "owner",
       },
-      {
-        label: "Assigned",
-        value: "assigned",
-      },
     ];
     if (user_role == UserRoleEntity.category.GUEST) return base;
     base.unshift({ label: "All", value: "all" });
+    base.push({
+      label: "Assigned",
+      value: "assigned",
+    });
     return base;
   }, [user_role]);
 
@@ -115,7 +109,6 @@ const ListView = () => {
       "list-reports",
       role,
       project_id,
-      groupId,
       severity,
       issueType,
       status,
@@ -130,7 +123,6 @@ const ListView = () => {
         role,
         page,
         15,
-        groupId ? Number(groupId) : undefined,
         severity ?? undefined,
         issueType ?? undefined,
         status ?? undefined,
@@ -161,7 +153,6 @@ const ListView = () => {
         role,
         pageParam,
         50,
-        undefined,
         severity ?? undefined,
         issueType ?? undefined,
         undefined,
@@ -173,15 +164,6 @@ const ListView = () => {
     initialPageParam: 1,
     getNextPageParam: (lastPage, _, lastPageParam) => {
       return lastPage.length < 50 ? null : lastPageParam + 1;
-    },
-  });
-  const { data: members } = useQuery({
-    queryKey: ["list-members", project_id],
-    queryFn: async () => {
-      const res = await ProjectsService.projectsControllerGetMembers(
-        project_id.toString()
-      );
-      return res.items;
     },
   });
   const { data: phases } = useQuery({
@@ -208,11 +190,6 @@ const ListView = () => {
     },
     [project_id, tasks]
   );
-  const onFieldItemClick = useCallback((id?: number) => {
-    setReportId(id);
-    showDrawer();
-    console.log("here");
-  }, []);
   const tableColumns: TableProps<ReportListItemEntity>["columns"] = [
     {
       dataIndex: "severity",
@@ -223,29 +200,30 @@ const ListView = () => {
       dataIndex: "name",
       key: "name",
       title: "Title",
+      width: "360px",
       render: (value, { id }) => (
-        <span
+        <Link
+          href={`/project/${project_id}/reports/${id}`}
           className="cursor-pointer hover:text-[var(--primary-color)]"
-          onClick={() => onFieldItemClick(id)}
         >
           {value}
-        </span>
+        </Link>
       ),
     },
     {
-      dataIndex: "url",
-      key: "url",
-      render: (value) => (
-        <Typography.Link href={value} target="_blank">
-          <ExportOutlined />
-        </Typography.Link>
+      dataIndex: "type",
+      key: "type",
+      render: (value?: ReportListItemEntity.type) => (
+        <Tag color={value ? REPORT_TYPE_COLOR_MAP[value] : "default"}>
+          {value}
+        </Tag>
       ),
     },
     {
       dataIndex: "description",
       key: "description",
       title: "Description",
-      width: "20%",
+      width: "400px",
       render: (value) => (
         <Typography.Paragraph className="!m-0" ellipsis={{ rows: 2 }}>
           {value}
@@ -257,17 +235,23 @@ const ListView = () => {
       dataIndex: "issueType",
       key: "issueType",
       title: "Type",
-      render: (value) => {
-        return <Tag>{value}</Tag>;
+      render: (value?: ReportListItemEntity.issueType) => {
+        return (
+          <Tag color={value ? REPORT_ISSUE_COLOR_MAP[value] : "default"}>
+            {value}
+          </Tag>
+        );
       },
     },
     {
       dataIndex: "status",
       key: "status",
       title: "Status",
-      render: (value) => {
+      render: (value?: ReportListItemEntity.status) => {
         return (
-          <Tag>{statusList.find((item) => item.value === value)?.label}</Tag>
+          <Tag color={value ? REPORT_STATUS_COLOR_MAP[value] : "default"}>
+            {statusList.find((item) => item.value === value)?.label}
+          </Tag>
         );
       },
     },
@@ -301,25 +285,6 @@ const ListView = () => {
       },
     },
     {
-      key: "note",
-      title: "Note",
-      render: (_, { groupId }) =>
-        groupId ? (
-          <Tag
-            color="red"
-            className="cursor-pointer"
-            onClick={() => {
-              setgroupId(groupId, { history: "push" });
-              setpage(1, { history: "push" });
-            }}
-          >
-            {"Dup"}
-          </Tag>
-        ) : (
-          <></>
-        ),
-    },
-    {
       key: "action",
       title: "Action",
       render: (_, { id }) => {
@@ -343,7 +308,7 @@ const ListView = () => {
   ];
   return (
     <PageContainer
-      className="!max-w-full !w-fit min-w-[1200px]"
+      className="!max-w-full !w-fit lg:min-w-[1200px]"
       title="Bug Reports List View"
       sideChildren={
         <Segmented
@@ -360,7 +325,7 @@ const ListView = () => {
       }
     >
       <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-        <Space className="items-center">
+        <Space className="items-center flex-wrap">
           <Segmented
             options={roleList}
             value={role}
@@ -433,12 +398,13 @@ const ListView = () => {
             size="small"
             className="w-fit"
           />
+          <Link href={`/project/${project_id}/reports/create`}>
           <AppButton
             text="Add New"
             icon={<PlusOutlined />}
             size="small"
-            onClick={() => onFieldItemClick()}
           />
+          </Link>
         </Space>
       </div>
       {viewMode == ViewMode.KANBAN && (
@@ -470,15 +436,11 @@ const ListView = () => {
             current: page,
             onChange: (page) => setpage(page, { history: "push" }),
           }}
+          scroll={{
+            x: "max-content",
+          }}
         />
       )}
-      <Drawer title="Bug Report" onClose={onClose} open={open}>
-        <ReportForm
-          reportid={reportId?.toString()}
-          members={members}
-          phases={phases ?? []}
-        />
-      </Drawer>
     </PageContainer>
   );
 };

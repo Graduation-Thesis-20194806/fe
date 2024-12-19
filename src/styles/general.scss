@@ -39,3 +39,11 @@ h3.app-title {
     border-bottom: none;
   }
 }
+
+
+.thumbnail-container:hover div.backdrop {
+  display: flex !important;
+}
+.thumbnail-container:blur div.backdrop {
+  display: flex !important;
+}

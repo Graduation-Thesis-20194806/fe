@@ -1,6 +1,5 @@
 import { EditOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, Button, Divider, Flex, Segmented, Space } from "antd";
-import TextArea from "antd/es/input/TextArea";
 import { useEffect, useState } from "react";
 import { ViewMode } from ".";
 import { CreateCommentDto, ReportCommentsEntity } from "../../../../client-sdk";
@@ -36,7 +35,9 @@ function CommentCard({ item, editable, onEditComment }: CommentCardProps) {
       <div style={{ flexGrow: 1 }}>
         <Flex justify="space-between" style={{ marginBottom: 8 }}>
           <Space>
-            <span className="text-[14px] font-bold">{item.createdBy.username}</span>
+            <span className="text-[14px] font-bold">
+              {item.createdBy.username}
+            </span>
             <span className="text-[10px] font-normal text-gray-400">
               {item.createdAt === item.updatedAt
                 ? formatDate(item.createdAt)
@@ -136,8 +137,9 @@ function Comments({
         </Flex>
       </div>
       <Flex vertical gap={16}>
-        {items?.map((item) => (
+        {items?.map((item, idx) => (
           <CommentCard
+            key={`comment-${idx}`}
             item={item}
             onEditComment={onEditComment}
             editable={user_id === item.createdById}

@@ -2,9 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type CategoryEntity = {
-    id: number;
-    name: string;
-    color: string;
+export type UpdateProjectDomainDto = {
+    name?: string;
+    url?: string;
 };
 

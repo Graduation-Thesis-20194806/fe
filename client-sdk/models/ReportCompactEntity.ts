@@ -2,9 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type CategoryEntity = {
+export type ReportCompactEntity = {
     id: number;
     name: string;
-    color: string;
 };
 

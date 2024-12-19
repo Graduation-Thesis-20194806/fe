@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CreateReportDto } from '../models/CreateReportDto';
+import type { MergeReportDto } from '../models/MergeReportDto';
 import type { ReportFullEntity } from '../models/ReportFullEntity';
 import type { ReportPaginationEntity } from '../models/ReportPaginationEntity';
 import type { UpdateReportDto } from '../models/UpdateReportDto';
@@ -15,7 +16,6 @@ export class ReportsService {
      * @param role
      * @param page
      * @param pageSize
-     * @param groupId
      * @param severity
      * @param issueType
      * @param status
@@ -29,7 +29,6 @@ export class ReportsService {
         role: string,
         page?: number,
         pageSize?: number,
-        groupId?: number,
         severity?: 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH',
         issueType?: 'UI' | 'FUNCTIONAL' | 'PERFORMANCE' | 'SECURITY' | 'NETWORK' | 'DATA' | 'OTHER',
         status?: 'INIT' | 'CONFIRMING' | 'IN_PROCESSING' | 'REJECTED' | 'DONE',
@@ -46,7 +45,6 @@ export class ReportsService {
                 'page': page,
                 'pageSize': pageSize,
                 'role': role,
-                'groupId': groupId,
                 'severity': severity,
                 'issueType': issueType,
                 'status': status,
@@ -112,6 +110,26 @@ export class ReportsService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns any
+     * @throws ApiError
+     */
+    public static reportsControllerMergeReport(
+        id: string,
+        requestBody: MergeReportDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/projects/{projectid}/reports/me/{id}/merge',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }

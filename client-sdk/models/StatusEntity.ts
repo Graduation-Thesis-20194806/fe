@@ -5,5 +5,7 @@
 export type StatusEntity = {
     id: number;
     name: string;
+    color: string;
+    isCloseStatus?: boolean;
 };
 
