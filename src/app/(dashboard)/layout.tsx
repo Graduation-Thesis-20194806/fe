@@ -2,13 +2,13 @@
 import AppLogo from "@/common/components/AppLogo";
 import { getStorage, removeStorage } from "@/common/helpers/storage";
 import { useBoundStore } from "@/store";
+import Notifications from "@/ui/notifications";
 import { LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Avatar,
   Divider,
   Dropdown,
   Layout,
-  Menu,
   MenuProps,
   Space,
   Spin,
@@ -19,9 +19,9 @@ const { Header } = Layout;
 
 export default function ProjectLayout({
   children,
-}: React.PropsWithChildren<{}>) {
+}: React.PropsWithChildren<object>) {
   const [loading, setLoading] = useState(true);
-  const { username, avatar, setUser, setCurrent } = useBoundStore();
+  const { username, avatar, setUser } = useBoundStore();
   const router = useRouter();
   const handleLogout = useCallback(() => {
     removeStorage("token");
@@ -49,7 +49,11 @@ export default function ProjectLayout({
     }
     const user = getStorage("user", "local") ?? "{}";
     const userObj = JSON.parse(user);
-    setUser({ username: userObj.username, avatar: userObj.avatar, userId: userObj.id });
+    setUser({
+      username: userObj.username,
+      avatar: userObj.avatar,
+      userId: userObj.id,
+    });
     setTimeout(() => {
       setLoading(false);
     }, 300);
@@ -66,28 +70,45 @@ export default function ProjectLayout({
         <div className="flex flex-grow items-center">
           <AppLogo showSlogan={false} fontSize={24} />
           <Divider type="vertical" className="h-7 top-0 border-gray-300 mx-4" />
-          <Space>
-            <span className="cursor-pointer" onClick={()=>{
-                removeStorage('project')
-                router.push('/project')
-            }}>My project</span>
-            <span className="cursor-pointer" onClick={()=>{
-                router.push('/profile')
-            }}>My profile</span>
-          </Space>
+          <div className="flex items-center gap-3">
+            <span
+              className="cursor-pointer leading-[1]"
+              onClick={() => {
+                removeStorage("project");
+                router.push("/project");
+              }}
+            >
+              My project
+            </span>
+            <span
+              className="cursor-pointer leading-[1]"
+              onClick={() => {
+                router.push("/profile");
+              }}
+            >
+              My profile
+            </span>
+          </div>
         </div>
-        <Dropdown menu={{ items }} trigger={["click"]}>
-          <a onClick={(e) => e.preventDefault()}>
-            <Space>
-              {avatar ? (
-                <Avatar src={avatar} />
-              ) : (
-                <Avatar icon={<UserOutlined />} className="bg-[var(--primary-color)]" size='small'/>
-              )}
-              {username}
-            </Space>
-          </a>
-        </Dropdown>
+        <div className="flex items-center gap-3 w-fit">
+          <Notifications />
+          <Dropdown menu={{ items }} trigger={["click"]}>
+            <a onClick={(e) => e.preventDefault()}>
+              <div className="flex items-center gap-2 leading-[1]">
+                {avatar ? (
+                  <Avatar src={avatar} />
+                ) : (
+                  <Avatar
+                    icon={<UserOutlined />}
+                    className="bg-[var(--primary-color)]"
+                    size="small"
+                  />
+                )}
+                {username}
+              </div>
+            </a>
+          </Dropdown>
+        </div>
       </Header>
       {children}
     </Layout>

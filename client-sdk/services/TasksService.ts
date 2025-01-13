@@ -108,4 +108,41 @@ export class TasksService {
             },
         });
     }
+    /**
+     * @param id
+     * @returns any
+     * @throws ApiError
+     */
+    public static tasksControllerDeleteReport(
+        id: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/projects/{projectid}/tasks/me/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Create Github Issue
+     * @param projectid
+     * @param requestBody
+     * @returns any
+     * @throws ApiError
+     */
+    public static tasksControllerCreateGithubIssue(
+        projectid: string,
+        requestBody: CreateTaskDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/projects/{projectid}/tasks/github/sync',
+            path: {
+                'projectid': projectid,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
 }

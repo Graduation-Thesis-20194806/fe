@@ -24,6 +24,7 @@ export type ReportListItemEntity = {
     createdBy: UserCompactEntity;
     phaseId?: number;
     isProcessing?: boolean;
+    isClosable: boolean;
 };
 export namespace ReportListItemEntity {
     export enum type {
@@ -49,9 +50,11 @@ export namespace ReportListItemEntity {
     export enum status {
         INIT = 'INIT',
         CONFIRMING = 'CONFIRMING',
+        CONFIRMED = 'CONFIRMED',
         IN_PROCESSING = 'IN_PROCESSING',
         REJECTED = 'REJECTED',
         DONE = 'DONE',
+        REOPEN = 'REOPEN',
     }
 }
 

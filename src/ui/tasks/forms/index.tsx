@@ -1,34 +1,26 @@
 "use client";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { NextPage } from "next";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
-  Form,
   Input,
   Select,
   Checkbox,
   DatePicker,
-  Upload,
   InputNumber,
-  Tag,
   UploadFile,
   message,
-  Drawer,
+  Radio,
+  Typography,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 import {
   CreateTaskDto,
   FilesService,
   ProjectsService,
   ReportImageEntity,
   ReportsService,
+  StatusEntity,
   TaskCommentsEntity,
   TaskCommentsService,
   TaskCreateCommentDto,
@@ -36,7 +28,7 @@ import {
   TasksService,
   UpdateTaskDto,
 } from "../../../../client-sdk";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Tiptap from "@/common/components/Editor";
 import axios from "axios";
 import { getS3Link } from "@/common/helpers/link";
@@ -45,8 +37,9 @@ import TaskComments from "./Comments";
 import { useBoundStore } from "@/store";
 import PageContainer from "@/common/components/container/PageContainer";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
 import dayjs from "dayjs";
+import { ExportOutlined } from "@ant-design/icons";
+import Link from "next/link";
 
 const priorityOptions = Object.values(CreateTaskDto.priority).map((p) => ({
   label: p,
@@ -69,6 +62,8 @@ const dtoFields = [
   "deleteAttachments",
   "reportId",
   "phaseId",
+  "type",
+  "createdBy",
 ] as any[];
 
 const changeToUpdateTaskDto = (data: TaskFullEntity): UpdateTaskDto => {
@@ -108,7 +103,7 @@ const formatHTML = (
     </div>`;
   }
   if (expectedBehavior) {
-    `<div>
+    returnText += `<div>
       <h2>Expected Behavior</h2>
       <p id="expectedBehavior">${expectedBehavior}</p>
     </div>`;
@@ -128,9 +123,12 @@ const formatHTML = (
 };
 
 const CreateIssuePage: NextPage = () => {
+  const router = useRouter();
   const { project_id, taskid } = useParams();
   const [comments, setComments] = useState<TaskCommentsEntity[] | undefined>();
-  
+  const [githubURL, setGithubURL] = useState<string | undefined>();
+  const [repo, setRepo] = useState<string | undefined>();
+  const [disableEdit, setDisableEdit] = useState(false);
   const searchParams = useSearchParams();
   const reportId = searchParams.get("reportId");
   const { userId } = useBoundStore();
@@ -172,9 +170,20 @@ const CreateIssuePage: NextPage = () => {
       return res;
     },
   });
+  const { data: repos } = useQuery({
+    queryKey: ["list-repos", project_id],
+    queryFn: async () => {
+      const res = await ProjectsService.projectsControllerGetProjectRepos(
+        project_id.toString()
+      );
+      return res;
+    },
+  });
   const {
     control,
     handleSubmit,
+    setValue,
+    getValues,
     formState: { errors },
     reset,
     watch,
@@ -192,8 +201,19 @@ const CreateIssuePage: NextPage = () => {
       assignedTo: undefined,
       tags: [],
       attachments: [],
+      type: CreateTaskDto.type.DEFAULT,
     },
   });
+
+  useEffect(() => {
+    if (statuses?.length && !taskid) {
+      setValue(
+        "statusId",
+        statuses.find((item) => item.category === StatusEntity.category.OPEN)
+          ?.id
+      );
+    }
+  }, [taskid, statuses]);
 
   const handleUpload = useCallback(
     async (file: UploadFile) => {
@@ -245,13 +265,17 @@ const CreateIssuePage: NextPage = () => {
   );
 
   useEffect(() => {
-    if (taskid) {
+    if (taskid && userId) {
       TasksService.tasksControllerGetMyTask(taskid.toString()).then((res) => {
         reset(changeToUpdateTaskDto(res));
         setComments(res.TaskComment);
+        setGithubURL(res.IssueGithub?.url);
+        if (res.createdBy !== userId) {
+          setDisableEdit(true);
+        }
       });
     }
-  }, [taskid]);
+  }, [taskid, userId]);
 
   useEffect(() => {
     if (!taskid && reportId) {
@@ -295,10 +319,11 @@ const CreateIssuePage: NextPage = () => {
             data
           );
         } else {
-          await TasksService.tasksControllerCreateTask(
+          const res = await TasksService.tasksControllerCreateTask(
             project_id.toString(),
             data
           );
+          router.push(`/project/${project_id}/tasks/${res.id}`);
         }
         message.success("Update successfully");
       } catch (e) {
@@ -316,6 +341,13 @@ const CreateIssuePage: NextPage = () => {
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-3 mb-4"
           >
+            {!!githubURL && (
+              <TitleWrapper label="Github URL">
+                <Typography.Link target="_blank" href={githubURL}>
+                  {githubURL}
+                </Typography.Link>
+              </TitleWrapper>
+            )}
             <TitleWrapper label="Issue Name" error={errors.name?.message}>
               <Controller
                 name="name"
@@ -326,6 +358,7 @@ const CreateIssuePage: NextPage = () => {
                     {...field}
                     placeholder="Enter issue name"
                     status={errors.name?.message ? "error" : ""}
+                    disabled={disableEdit}
                   />
                 )}
               />
@@ -340,20 +373,73 @@ const CreateIssuePage: NextPage = () => {
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <Tiptap
-                    handleUpload={handleUpload}
-                    content={field.value}
-                    onUpdate={field.onChange}
-                  />
+                  <div className="relative">
+                    <Tiptap
+                      handleUpload={handleUpload}
+                      content={field.value}
+                      onUpdate={field.onChange}
+                    />
+                    {disableEdit && (
+                      <div className="absolute inset-0 bg-[rgba(255,255,255,0.5)] z-[1]" />
+                    )}
+                  </div>
                 )}
               />
             </TitleWrapper>
+            {!!repos?.length && (
+              <>
+                <TitleWrapper label="Task Type">
+                  <Controller
+                    name="type"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <Radio.Group
+                        value={value}
+                        onChange={onChange}
+                        options={[
+                          {
+                            label: "Default",
+                            value: CreateTaskDto.type.DEFAULT,
+                          },
+                          {
+                            label: "Github",
+                            value: CreateTaskDto.type.GITHUB,
+                          },
+                        ]}
+                        disabled={!!taskid}
+                      />
+                    )}
+                  />
+                </TitleWrapper>
+                {watch("type") === CreateTaskDto.type.GITHUB && !taskid && (
+                  <TitleWrapper label="Repository">
+                    <Controller
+                      name="repoId"
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <Select
+                          value={value}
+                          onChange={onChange}
+                          options={repos.map((item) => ({
+                            label: item.name,
+                            value: item.id,
+                          }))}
+                          className="w-[300px]"
+                        />
+                      )}
+                    />
+                  </TitleWrapper>
+                )}
+              </>
+            )}
             <Button
               type="primary"
               htmlType="submit"
               className="w-[160px] mx-auto"
             >
-              Create Task
+              {taskid ? "Update Task" : "Create Task"}
             </Button>
           </form>
           {taskid && (
@@ -367,6 +453,13 @@ const CreateIssuePage: NextPage = () => {
         </div>
 
         <div className="flex flex-col gap-3 sticky top-0 right-0 h-fit">
+          {!!watch("reportId") && (
+            <Link
+              href={`/project/${project_id}/reports/${getValues("reportId")}`}
+            >
+              <Button icon={<ExportOutlined />}>Related Report</Button>
+            </Link>
+          )}
           <TitleWrapper label="Assignee">
             <Controller
               name="assignedTo"

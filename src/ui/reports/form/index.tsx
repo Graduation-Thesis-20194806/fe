@@ -4,14 +4,13 @@ import {
   CreateCommentDto,
   CreateReportDto,
   FilesService,
-  MemberPaginateEntity,
-  PhaseEntity,
   ProjectsService,
   ReportCommentsEntity,
   ReportCommentsService,
   ReportCompactEntity,
   ReportDuplicateEntity,
   ReportFullEntity,
+  ReportListItemEntity,
   ReportsService,
   TaskCompactEntity,
   UpdateReportDto,
@@ -21,7 +20,7 @@ import { ReportEditView } from "./ReportEditView";
 import Comments from "./Comments";
 import { useBoundStore } from "@/store";
 import { useParams } from "next/navigation";
-import { message, UploadFile } from "antd";
+import { Alert, message, UploadFile } from "antd";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import PageContainer from "@/common/components/container/PageContainer";
@@ -76,10 +75,12 @@ const ReportForm = ({ reportid }: { reportid?: string }) => {
   const [duplicateReport, setDuplicateReport] = useState<
     ReportDuplicateEntity[] | undefined
   >();
-  const [disableEdit, setDisableEdit] = useState(false);
+  const [disableContentEdit, setDisableContentEdit] = useState(false);
+  const [disableMetaEdit, setDisableMetaEdit] = useState(false);
+  const [isClosable, setClosable] = useState(false);
   const [isProcessing, setProcessing] = useState(false);
   const methods = useForm<UpdateReportDto>();
-  const { handleSubmit, reset, getValues, setValue, watch } = methods;
+  const { handleSubmit, reset, getValues, setValue } = methods;
   const onChangeViewMode = (value: ViewMode) => setViewMode(value);
   const { userId } = useBoundStore();
   const { project_id } = useParams();
@@ -128,14 +129,23 @@ const ReportForm = ({ reportid }: { reportid?: string }) => {
     const res = await ReportsService.reportsControllerGetMyReport(
       reportid.toString()
     );
-    if (res.createdById !== userId) setDisableEdit(true);
+    if (
+      res.createdById !== userId ||
+      (res.status !== ReportListItemEntity.status.INIT &&
+        res.status !== ReportListItemEntity.status.REJECTED)
+    )
+      setDisableContentEdit(true);
+    if (res.assignedTo && res.assignedTo !== userId) {
+      setDisableMetaEdit(true);
+    }
+    setClosable(res.isClosable);
     reset(changeToUpdateReportDto(res));
     setComments(res.ReportComment);
     setChildrenReport(res.children);
     setTasks(res.Task);
     setDuplicateReport(res.DuplicateGroup);
     setProcessing(res.isProcessing ?? false);
-  }, [reportid]);
+  }, [reportid, userId]);
   useEffect(() => {
     refetch();
   }, [reportid, userId]);
@@ -208,6 +218,13 @@ const ReportForm = ({ reportid }: { reportid?: string }) => {
   );
   return (
     <PageContainer title={reportid ? "Report" : "Create Report"}>
+      {isClosable && (
+        <Alert
+          type="success"
+          message="All related task of this report is done! You can close this report."
+          className="mb-3"
+        />
+      )}
       <FormProvider {...methods}>
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -221,12 +238,14 @@ const ReportForm = ({ reportid }: { reportid?: string }) => {
             members={members}
             phases={phases ?? []}
             isProcessing={isProcessing}
-            disableEdit={disableEdit}
+            disableContentEdit={disableContentEdit}
+            disableMetaEdit={disableMetaEdit}
             showComment={!!reportid && !!userId}
             refetch={refetch}
             tasks={tasks}
             childrenReport={childrenReport}
             duplicateReport={duplicateReport}
+            isClosable={isClosable}
           />
         </form>
       </FormProvider>

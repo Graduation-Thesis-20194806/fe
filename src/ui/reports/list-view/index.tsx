@@ -12,7 +12,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Avatar,
   Button,
-  Drawer,
   Input,
   Segmented,
   Space,
@@ -54,13 +53,15 @@ export const columns = [
   },
   { id: ReportListItemEntity.status.DONE, name: "Done", order: 4 },
   { id: ReportListItemEntity.status.REJECTED, name: "Reject", order: 5 },
+  { id: ReportListItemEntity.status.CONFIRMED, name: "Confirmed", order: 6 },
+  { id: ReportListItemEntity.status.REOPEN, name: "Reopen", order: 7 },
 ];
 enum ViewMode {
   TABLE = "TABLE",
   KANBAN = "KANBAN",
 }
 const ListView = () => {
-  const { user_role } = useBoundStore();
+  const { user_role, userId } = useBoundStore();
   const { project_id } = useParams();
   const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.TABLE);
   const [role, setrole] = useQueryState("role", { defaultValue: "owner" });
@@ -104,7 +105,7 @@ const ListView = () => {
     return base;
   }, [user_role]);
 
-  const { data: tasks } = useQuery({
+  const { data: tasks, refetch } = useQuery({
     queryKey: [
       "list-reports",
       role,
@@ -136,6 +137,7 @@ const ListView = () => {
     data: kanbanTasks,
     fetchNextPage,
     hasNextPage,
+    refetch: refetchKanban,
   } = useInfiniteQuery({
     queryKey: [
       "list-reports-kanban",
@@ -287,16 +289,35 @@ const ListView = () => {
     {
       key: "action",
       title: "Action",
-      render: (_, { id }) => {
+      render: (_, { id, createdById, status }) => {
         return (
           <Space>
-            <Button icon={<DeleteOutlined />} />
+            {createdById == userId && (
+              <Button
+                icon={<DeleteOutlined />}
+                disabled={
+                  status !== ReportListItemEntity.status.INIT &&
+                  status !== ReportListItemEntity.status.REJECTED
+                }
+                onClick={async () => {
+                  await ReportsService.reportsControllerDeleteReport(
+                    id.toString()
+                  );
+                  await refetch();
+                  await refetchKanban();
+                }}
+              />
+            )}
             <Button
               icon={<PlusOutlined />}
               onClick={() =>
                 router.push(
                   `/project/${project_id}/tasks/create?reportId=${id}`
                 )
+              }
+              disabled={
+                status !== ReportListItemEntity.status.CONFIRMED &&
+                status !== ReportListItemEntity.status.IN_PROCESSING
               }
             >
               Task
@@ -312,13 +333,17 @@ const ListView = () => {
       title="Bug Reports List View"
       sideChildren={
         <Segmented
-          options={[
-            { label: "Table", value: ViewMode.TABLE },
-            {
-              label: "Kanban",
-              value: ViewMode.KANBAN,
-            },
-          ]}
+          options={
+            user_role == UserRoleEntity.category.GUEST
+              ? [{ label: "Table", value: ViewMode.TABLE }]
+              : [
+                  { label: "Table", value: ViewMode.TABLE },
+                  {
+                    label: "Kanban",
+                    value: ViewMode.KANBAN,
+                  },
+                ]
+          }
           onChange={(value) => setViewMode(value)}
           className="mb-4"
         />
@@ -399,21 +424,22 @@ const ListView = () => {
             className="w-fit"
           />
           <Link href={`/project/${project_id}/reports/create`}>
-          <AppButton
-            text="Add New"
-            icon={<PlusOutlined />}
-            size="small"
-          />
+            <AppButton text="Add New" icon={<PlusOutlined />} size="small" />
           </Link>
         </Space>
       </div>
       {viewMode == ViewMode.KANBAN && (
         <div>
-          <Tasks
-            tasks={kanbanTasks?.pages.flatMap((items) => items.slice())}
-            columns={columns}
-            onMove={onMoveStatus}
-          />
+          <div className="relative">
+            <Tasks
+              tasks={kanbanTasks?.pages.flatMap((items) => items.slice())}
+              columns={columns}
+              onMove={onMoveStatus}
+            />
+            <div style={{
+              display: role == 'assigned'? 'none':'block'
+            }} className="absolute top-0 bottom-[20px] right-0 left-0 cursor-not-allowed z-[1]"/>
+          </div>
           <div className="mx-auto w-fit mt-3">
             <Button
               icon={<UndoOutlined />}

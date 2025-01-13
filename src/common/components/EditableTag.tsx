@@ -32,7 +32,8 @@ const EditableTag = ({
             value={text}
             onChange={(e) => setText(e.target.value)}
             onPressEnter={async () => {
-              await onUpdate(text, color), setEditing(false);
+              await onUpdate(text, color);
+              setEditing(false);
             }}
           />
         )}

@@ -1,15 +1,5 @@
-import { GetServerSideProps, NextPage } from "next";
 import React, { useMemo, useState } from "react";
-import {
-  Card,
-  Row,
-  Col,
-  Statistic,
-  Avatar,
-  Segmented,
-  DatePicker,
-  Select,
-} from "antd";
+import { Card, Row, Col, Statistic, Segmented, DatePicker, Select } from "antd";
 import { Pie, Bar } from "react-chartjs-2";
 import "antd/dist/reset.css"; // If using AntD v5, style import path may differ
 import {
@@ -33,7 +23,6 @@ import {
 import { useBoundStore } from "@/store";
 import { useQueryState } from "nuqs";
 import { getS3Link } from "@/common/helpers/link";
-import { UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 ChartJS.register(
@@ -293,10 +282,9 @@ const DashboardContainer = () => {
                 backgroundImage: `url('${
                   project?.projectThumbnail
                     ? getS3Link(project.projectThumbnail)
-                    :
-                  `/images/sample/project_sample_${
-                    Math.floor(Math.random() * 4) + 1
-                  }.jpg`
+                    : `/images/sample/project_sample_${
+                        Math.floor(Math.random() * 4) + 1
+                      }.jpg`
                 }')`,
               }}
             >

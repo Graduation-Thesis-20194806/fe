@@ -17,6 +17,8 @@ export type CreateTaskDto = {
     attachments?: Array<number>;
     reportId?: number;
     phaseId?: number;
+    type?: CreateTaskDto.type;
+    repoId?: number;
 };
 export namespace CreateTaskDto {
     export enum priority {
@@ -24,6 +26,10 @@ export namespace CreateTaskDto {
         MEDIUM = 'MEDIUM',
         HIGH = 'HIGH',
         IMMEDIATE = 'IMMEDIATE',
+    }
+    export enum type {
+        GITHUB = 'GITHUB',
+        DEFAULT = 'DEFAULT',
     }
 }
 

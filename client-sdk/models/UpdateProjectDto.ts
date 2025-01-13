@@ -8,5 +8,7 @@ export type UpdateProjectDto = {
     description?: string;
     projectThumbnail?: string;
     projectDomain?: Array<CreateProjectDomainDto>;
+    githubOrgId?: number;
+    githubOrgName?: string;
 };
 

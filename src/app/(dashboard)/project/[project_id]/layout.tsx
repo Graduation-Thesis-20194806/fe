@@ -9,7 +9,7 @@ import { ProjectsService } from "../../../../../client-sdk";
 
 export default function ProjectDetailLayout({
   children,
-}: React.PropsWithChildren<{}>) {
+}: React.PropsWithChildren) {
   const [loading, setLoading] = useState(true);
   const { setCurrent } = useBoundStore();
   const {project_id} = useParams()

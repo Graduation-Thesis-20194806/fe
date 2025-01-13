@@ -14,5 +14,7 @@ export type UserEntity = {
     role?: RoleEntity;
     phoneNumber: string;
     username: string;
+    githubId?: string;
+    githubUsername?: string;
 };
 

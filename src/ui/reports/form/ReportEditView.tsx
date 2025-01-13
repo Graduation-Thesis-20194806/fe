@@ -19,8 +19,10 @@ import {
 } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import {
+  CloseCircleOutlined,
   DeleteOutlined,
   MergeOutlined,
+  PlusOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import { ViewMode } from ".";
@@ -45,12 +47,14 @@ type Props = {
   members?: MemberPaginateEntity["items"];
   phases: PhaseEntity[];
   isProcessing: boolean;
-  disableEdit: boolean;
+  disableContentEdit: boolean;
+  disableMetaEdit: boolean;
   showComment?: boolean;
   refetch: () => Promise<void>;
   tasks?: TaskCompactEntity[];
   childrenReport?: ReportCompactEntity[];
   duplicateReport?: ReportDuplicateEntity[];
+  isClosable?: boolean;
 };
 
 export function ReportEditView({
@@ -59,18 +63,21 @@ export function ReportEditView({
   members,
   phases,
   isProcessing,
-  disableEdit,
+  disableContentEdit,
+  disableMetaEdit,
   showComment = false,
   refetch,
   tasks,
   childrenReport,
   duplicateReport,
+  isClosable = false,
 }: Props) {
   const { project_id, reportid } = useParams();
   const {
     control,
     getValues,
     setValue,
+    watch,
     formState: { errors },
   } = useFormContext<UpdateReportDto>();
   const imagesWatch = useWatch({ control, name: "images" });
@@ -121,7 +128,7 @@ export function ReportEditView({
                 onChange={onChange}
                 options={phaseOptions}
                 className="w-full"
-                disabled={disableEdit}
+                disabled={disableContentEdit}
               />
             </TitleWrapper>
           )}
@@ -134,7 +141,11 @@ export function ReportEditView({
           }}
           render={({ field: { value, onChange } }) => (
             <TitleWrapper label="Report Name" error={errors.name?.message}>
-              <Input value={value} onChange={onChange} disabled={disableEdit} />
+              <Input
+                value={value}
+                onChange={onChange}
+                disabled={disableContentEdit}
+              />
             </TitleWrapper>
           )}
         />
@@ -153,7 +164,7 @@ export function ReportEditView({
               <TextArea
                 value={value}
                 onChange={onChange}
-                disabled={disableEdit}
+                disabled={disableContentEdit}
               />
             </TitleWrapper>
           )}
@@ -166,7 +177,7 @@ export function ReportEditView({
               <TextArea
                 value={value}
                 onChange={onChange}
-                disabled={disableEdit}
+                disabled={disableContentEdit}
               />
             </TitleWrapper>
           )}
@@ -179,7 +190,7 @@ export function ReportEditView({
               <TextArea
                 value={value}
                 onChange={onChange}
-                disabled={disableEdit}
+                disabled={disableContentEdit}
               />
             </TitleWrapper>
           )}
@@ -192,7 +203,7 @@ export function ReportEditView({
               <TextArea
                 value={value}
                 onChange={onChange}
-                disabled={disableEdit}
+                disabled={disableContentEdit}
               />
             </TitleWrapper>
           )}
@@ -205,10 +216,10 @@ export function ReportEditView({
             customRequest={({ file }) => {
               handleUpload(file);
             }}
-            disabled={disableEdit}
+            disabled={disableContentEdit}
           >
             <Button
-              disabled={disableEdit}
+              disabled={disableContentEdit}
               className="mb-4"
               icon={<UploadOutlined />}
             >
@@ -231,7 +242,7 @@ export function ReportEditView({
                 <span
                   className="absolute w-4 h-4 text-[10px] leading-4 text-center bg-black/50 text-white cursor-pointer top-0 right-0 rounded-md translate-x-1/2 -translate-y-1/2 z-10"
                   onClick={
-                    disableEdit
+                    disableContentEdit
                       ? undefined
                       : (e) => {
                           e.stopPropagation();
@@ -273,7 +284,7 @@ export function ReportEditView({
                       style={{ flexGrow: 1 }}
                       value={value}
                       onChange={onChange}
-                      disabled={disableEdit}
+                      disabled={disableContentEdit}
                     />
                   )}
                 />
@@ -284,7 +295,7 @@ export function ReportEditView({
                   onClick={() => {
                     remove(index);
                   }}
-                  disabled={disableEdit}
+                  disabled={disableContentEdit}
                 />
               </Flex>
               <Controller
@@ -397,8 +408,16 @@ export function ReportEditView({
                 <Select
                   value={value}
                   onChange={onChange}
-                  options={statusList}
+                  options={
+                    isClosable
+                      ? statusList
+                      : statusList.filter(
+                          (item) =>
+                            item.value !== ReportListItemEntity.status.DONE
+                        )
+                  }
                   className="w-full"
+                  disabled={disableMetaEdit}
                 />
               )}
             />
@@ -416,6 +435,7 @@ export function ReportEditView({
                     value: item.id,
                   }))}
                   className="w-full"
+                  disabled={disableMetaEdit}
                 />
               )}
             />
@@ -423,17 +443,32 @@ export function ReportEditView({
         </div>
         <TitleWrapper label="Related Tasks">
           {tasks?.map((item) => (
-            <div className="flex justify-between p-4 rounded-lg border-[#f1f1f1] w-full">
+            <div
+              className="flex justify-between p-4 rounded-lg border-[#f1f1f1] w-full"
+              key={item.id}
+            >
               <Link href={`/project/${project_id}/tasks/${item.id}`}>
                 {item.name}
               </Link>
               <Tag>{item.status}</Tag>
             </div>
           ))}
+          {(watch("status") === ReportListItemEntity.status.CONFIRMED || watch("status") === ReportListItemEntity.status.IN_PROCESSING) && (
+            <Link
+              href={`/project/${project_id}/tasks/create?reportId=${reportid}`}
+            >
+              <Button icon={<PlusOutlined />} disabled={disableMetaEdit}>
+                Create Task
+              </Button>
+            </Link>
+          )}
         </TitleWrapper>
         <TitleWrapper label="Merged Reports">
           {childrenReport?.map((item) => (
-            <div className="w-full p-4 rounded-lg border-[#f1f1f1]">
+            <div
+              className="w-full p-4 rounded-lg border-[#f1f1f1]"
+              key={item.id}
+            >
               <Link href={`/project/${project_id}/tasks/${item.id}`}>
                 {item.name}
               </Link>
@@ -442,8 +477,11 @@ export function ReportEditView({
         </TitleWrapper>
         <TitleWrapper label="Duplicate Report">
           {duplicateReport?.map((item) => (
-            <div className="flex justify-between p-4 rounded-lg border-[#f1f1f1]">
-              <Link href={`/project/${project_id}/tasks/${item.id}`}>
+            <div
+              className="flex justify-between p-4 rounded-lg border-[#f1f1f1]"
+              key={item.id}
+            >
+              <Link href={`/project/${project_id}/reports/${item.id}`}>
                 {item.name}
               </Link>
               <div>
@@ -459,10 +497,14 @@ export function ReportEditView({
                         type: "merge",
                       }
                     );
-                    await refetch()
+                    await refetch();
                   }}
+                  disabled={disableMetaEdit}
                 />
-                <Button size="small" icon={<DeleteOutlined />} onClick={async () => {
+                <Button
+                  size="small"
+                  icon={<CloseCircleOutlined />}
+                  onClick={async () => {
                     await ReportsService.reportsControllerMergeReport(
                       reportid.toString(),
                       {
@@ -470,8 +512,10 @@ export function ReportEditView({
                         type: "delete",
                       }
                     );
-                    await refetch()
-                  }}/>
+                    await refetch();
+                  }}
+                  disabled={disableMetaEdit}
+                />
               </div>
             </div>
           ))}

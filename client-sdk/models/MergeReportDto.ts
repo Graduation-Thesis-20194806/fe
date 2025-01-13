@@ -4,6 +4,6 @@
 /* eslint-disable */
 export type MergeReportDto = {
     childrenId: number;
-    type?: string;
+    type: string;
 };
 

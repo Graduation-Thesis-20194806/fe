@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { IssueGithubEntity } from './IssueGithubEntity';
 import type { ProjectMemberEntity } from './ProjectMemberEntity';
 import type { TaskAttachmentEntity } from './TaskAttachmentEntity';
 import type { TaskCommentsEntity } from './TaskCommentsEntity';
@@ -9,6 +10,7 @@ export type TaskFullEntity = {
     id: number;
     name: string;
     description: string;
+    createdBy: number;
     estimateTime?: number;
     deadline?: string;
     priority?: TaskFullEntity.priority;
@@ -23,6 +25,8 @@ export type TaskFullEntity = {
     Report: Record<string, any>;
     reportId: number;
     phaseId?: number;
+    taskType?: TaskFullEntity.taskType;
+    IssueGithub?: IssueGithubEntity;
     TaskAttachment: Array<TaskAttachmentEntity>;
     TaskComment: Array<TaskCommentsEntity>;
 };
@@ -32,6 +36,10 @@ export namespace TaskFullEntity {
         MEDIUM = 'MEDIUM',
         HIGH = 'HIGH',
         IMMEDIATE = 'IMMEDIATE',
+    }
+    export enum taskType {
+        GITHUB = 'GITHUB',
+        DEFAULT = 'DEFAULT',
     }
 }
 

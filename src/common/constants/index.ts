@@ -23,10 +23,12 @@ export const REPORT_STATUS_COLOR_MAP = {
   [ReportListItemEntity.status.IN_PROCESSING]: "gold",
   [ReportListItemEntity.status.REJECTED]: "red",
   [ReportListItemEntity.status.DONE]: "green",
+  [ReportListItemEntity.status.CONFIRMED]: "orange",
+  [ReportListItemEntity.status.REOPEN]: "blue",
 };
 
 export const REPORT_TYPE_COLOR_MAP = {
   [ReportListItemEntity.type.BUG]: "red",
   [ReportListItemEntity.type.FEEDBACK]: "gold",
-  [ReportListItemEntity.type.WISH]: "blue"
-}
+  [ReportListItemEntity.type.WISH]: "blue",
+};

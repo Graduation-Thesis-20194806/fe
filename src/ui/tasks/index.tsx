@@ -1,11 +1,9 @@
 "use client";
 import PageContainer from "@/common/components/container/PageContainer";
-import CreateIssuePage from "./forms";
 import {
   Avatar,
   Button,
   ColorPicker,
-  Drawer,
   Input,
   Segmented,
   Space,
@@ -19,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ProjectsService,
+  StatusEntity,
   TaskListItemEntity,
   TasksService,
   UserRoleEntity,
@@ -31,22 +30,16 @@ import { formatDate } from "@/common/helpers/date";
 import { getS3Link } from "@/common/helpers/link";
 import {
   DeleteOutlined,
+  GithubOutlined,
   LeftOutlined,
   PlusOutlined,
   UndoOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import {
-  PriorityBacklogOutlined,
-  PriorityHighOutlined,
-  PriorityNormalOutlined,
-  PriorityUrgentOutlined,
-} from "@/common/components/KanBan/CustomIcons";
 import AppButton from "@/common/components/AppButton";
 import TitleWrapper from "@/common/components/TitleWrapper";
 import EditableTag from "@/common/components/EditableTag";
 import AppSelect from "@/common/components/AppSelect";
-import ReportForm from "../reports/form";
 import { getPriorityIconByID } from "@/common/components/TaskKanBan/TasksItem";
 import KanbanTasks from "@/common/components/TaskKanBan/Tasks";
 enum ViewMode {
@@ -201,6 +194,17 @@ const TaskManagementContainer = () => {
         ),
       },
       {
+        key: "githubLink",
+        render: (_, { IssueGithub }) =>
+          IssueGithub ? (
+            <a target="_blank" href={IssueGithub.url}>
+              <GithubOutlined />
+            </a>
+          ) : (
+            <></>
+          ),
+      },
+      {
         dataIndex: "createdAt",
         key: "createdAt",
         title: "Created At",
@@ -249,7 +253,9 @@ const TaskManagementContainer = () => {
         dataIndex: "statusId",
         title: "Status",
         render: (value) => (
-          <Tag color={statuses?.find((item) => item.id == value)?.color}>{statuses?.find((item) => item.id == value)?.name}</Tag>
+          <Tag color={statuses?.find((item) => item.id == value)?.color}>
+            {statuses?.find((item) => item.id == value)?.name}
+          </Tag>
         ),
       },
       {
@@ -257,20 +263,29 @@ const TaskManagementContainer = () => {
         dataIndex: "categoryId",
         title: "Category",
         render: (value) => (
-          <Tag>{categories?.find((item) => item.id == value)?.name}</Tag>
+          <Tag color={categories?.find((item) => item.id == value)?.color}>
+            {categories?.find((item) => item.id == value)?.name}
+          </Tag>
         ),
       },
       {
         key: "bugReport",
         title: "Report",
         render: (_, { Report, reportId }) => (
-          <Link href={`/project/${project_id}/reports/${reportId}`}>
-            <Tag className="cursor-pointer">
-              <Typography.Text ellipsis className="!text-[12px] !max-w-[100px]">
-                {Report.name}
-              </Typography.Text>
-            </Tag>
-          </Link>
+          <>
+            {Report && (
+              <Link href={`/project/${project_id}/reports/${reportId}`}>
+                <Tag className="cursor-pointer">
+                  <Typography.Text
+                    ellipsis
+                    className="!text-[12px] !max-w-[100px]"
+                  >
+                    {Report?.name}
+                  </Typography.Text>
+                </Tag>
+              </Link>
+            )}
+          </>
         ),
       },
       {
@@ -295,7 +310,7 @@ const TaskManagementContainer = () => {
     );
     await mutateStatus();
     setStatus(undefined);
-    setStatusColor(undefined)
+    setStatusColor(undefined);
   }, [project_id, status]);
   const onUpdateStatus = useCallback(
     async (id: number, status?: string, color?: string) => {
@@ -317,7 +332,7 @@ const TaskManagementContainer = () => {
     );
     await mutateCategory();
     setCategory(undefined);
-    setCategoryColor(undefined)
+    setCategoryColor(undefined);
   }, [project_id, category]);
   const onUpdateCategory = useCallback(
     async (id: number, category?: string, color?: string) => {
@@ -349,7 +364,7 @@ const TaskManagementContainer = () => {
   return (
     <PageContainer
       title="Task Management"
-      className="!max-w-full !w-fit lg:min-w-[1200px]"
+      className="!max-w-full lg:min-w-[1200px]"
       sideChildren={
         <Segmented
           options={[
@@ -467,7 +482,7 @@ const TaskManagementContainer = () => {
         </div>
       )}
       {viewMode == ViewMode.TABLE && (
-        <div className="grid grid-cols-6 gap-4 w-[1200px]">
+        <div className="grid grid-cols-6 gap-4 w-full">
           <div className="col-span-5">
             <Table
               className="app-table w-full"
@@ -485,20 +500,23 @@ const TaskManagementContainer = () => {
           <div>
             <TitleWrapper label="Status" className="mb-6">
               <div className="flex flex-col gap-2">
-                {statuses?.map((item) => (
+                {statuses?.map((item, idx) => (
                   <EditableTag
+                    key={`status-${idx}`}
                     color={item.color}
                     className="inline-flex justify-between items-center h-8"
                     value={item.name}
-                    onUpdate={(value, color) => onUpdateStatus(item.id, value, color)}
-                    editable={!item.isCloseStatus}
+                    onUpdate={(value, color) =>
+                      onUpdateStatus(item.id, value, color)
+                    }
+                    editable={item.category !== StatusEntity.category.CLOSE}
                   />
                 ))}
                 <span className="inline-flex gap-2 items-center">
                   <Input
                     value={status}
                     placeholder="Add Status"
-                    onPressEnter={(e) => onAddStatus()}
+                    onPressEnter={() => onAddStatus()}
                     onChange={(e) => setStatus(e.target.value)}
                     className="rounded-none focus:shadow-none border-t-0 border-l-0 border-r-0"
                   />
@@ -511,18 +529,22 @@ const TaskManagementContainer = () => {
             </TitleWrapper>
             <TitleWrapper label="Category">
               <div className="flex flex-col gap-2">
-                {categories?.map((item) => (
+                {categories?.map((item, idx) => (
                   <EditableTag
+                    color={item.color}
+                    key={`category-${idx}`}
                     className="inline-flex justify-between items-center h-8"
                     value={item.name}
-                    onUpdate={(value, color) => onUpdateCategory(item.id, value, color)}
+                    onUpdate={(value, color) =>
+                      onUpdateCategory(item.id, value, color)
+                    }
                   />
                 ))}
                 <div className="inline-flex gap-2 items-center">
                   <Input
                     value={category}
                     placeholder="Add Category"
-                    onPressEnter={(e) => onAddCategory()}
+                    onPressEnter={() => onAddCategory()}
                     onChange={(e) => setCategory(e.target.value)}
                     className="rounded-none focus:shadow-none border-t-0 border-l-0 border-r-0"
                   />

@@ -1,4 +1,7 @@
+"use client"
+import MyProfileContainer from "@/ui/my-profile"
+
 const ProfilePage = ()=>{
-    return <></>
+    return <MyProfileContainer/>
 }
 export default ProfilePage

@@ -61,4 +61,30 @@ export class AuthService {
             },
         });
     }
+    /**
+     * @returns string
+     * @throws ApiError
+     */
+    public static authControllerGithubLogin(): CancelablePromise<string> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/auth/github/login',
+        });
+    }
+    /**
+     * @param code
+     * @returns any
+     * @throws ApiError
+     */
+    public static authControllerGithubCallback(
+        code: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/auth/github/callback',
+            query: {
+                'code': code,
+            },
+        });
+    }
 }

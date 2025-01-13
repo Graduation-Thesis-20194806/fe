@@ -6,6 +6,14 @@ export type StatusEntity = {
     id: number;
     name: string;
     color: string;
-    isCloseStatus?: boolean;
+    category?: StatusEntity.category;
 };
+export namespace StatusEntity {
+    export enum category {
+        OPEN = 'OPEN',
+        CLOSE = 'CLOSE',
+        REOPEN = 'REOPEN',
+        CUSTOM = 'CUSTOM',
+    }
+}
 

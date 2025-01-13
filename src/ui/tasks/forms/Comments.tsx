@@ -131,6 +131,7 @@ function TaskComments({
       <Flex vertical gap={16}>
         {items?.map((item) => (
           <CommentCard
+            key={item.id}
             item={item}
             onEditComment={onEditComment}
             editable={user_id === item.createdBy}

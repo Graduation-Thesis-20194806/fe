@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { GithubRepoEntity } from './GithubRepoEntity';
 import type { UserRoleEntity } from './UserRoleEntity';
 export type ProjectEntity = {
     id: number;
@@ -11,5 +12,7 @@ export type ProjectEntity = {
     createdAt: string;
     updatedAt: string;
     userRole?: UserRoleEntity;
+    githubOrgName?: string;
+    GithubRepo?: Array<GithubRepoEntity>;
 };
 

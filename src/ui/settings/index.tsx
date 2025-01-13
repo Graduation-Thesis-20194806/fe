@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { Segmented } from "antd";
 import { useState } from "react";
 import ProjectDomain from "./ProjectDomain";
+import SyncSettings from "./SyncSettings";
 enum SettingsEnum {
   DOMAIN = "DOMAIN",
   PHASE = "PHASE",
@@ -47,6 +48,7 @@ const SettingsContainer = () => {
         {viewMode === SettingsEnum.DOMAIN && <ProjectDomain />}
         {viewMode === SettingsEnum.PHASE && <PhasePage />}
         {viewMode === SettingsEnum.ASSIGN && <AssignsPage />}
+        {viewMode === SettingsEnum.SYNC && <SyncSettings />}
       </div>
     </PageContainer>
   );

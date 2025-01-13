@@ -111,6 +111,7 @@ const AppMenu = () => {
       selected: "",
       open: [] as Array<string>,
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const findKey = (items: Array<any>): boolean => {
       for (const item of items) {
         if (item.children) {

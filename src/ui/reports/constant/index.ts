@@ -53,4 +53,6 @@ export const statusList = [
   { label: "In processing", value: ReportListItemEntity.status.IN_PROCESSING },
   { label: "Rejected", value: ReportListItemEntity.status.REJECTED },
   { label: "Done", value: ReportListItemEntity.status.DONE },
+  { label: "Reopen", value: ReportListItemEntity.status.REOPEN },
+  { label: "Confirmed", value: ReportListItemEntity.status.CONFIRMED },
 ];

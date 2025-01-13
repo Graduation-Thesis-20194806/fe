@@ -2,11 +2,13 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { IssueGithubEntity } from './IssueGithubEntity';
 import type { ProjectMemberEntity } from './ProjectMemberEntity';
 export type TaskListItemEntity = {
     id: number;
     name: string;
     description: string;
+    createdBy: number;
     estimateTime?: number;
     deadline?: string;
     priority?: TaskListItemEntity.priority;
@@ -21,6 +23,8 @@ export type TaskListItemEntity = {
     Report: Record<string, any>;
     reportId: number;
     phaseId?: number;
+    taskType?: TaskListItemEntity.taskType;
+    IssueGithub?: IssueGithubEntity;
 };
 export namespace TaskListItemEntity {
     export enum priority {
@@ -28,6 +32,10 @@ export namespace TaskListItemEntity {
         MEDIUM = 'MEDIUM',
         HIGH = 'HIGH',
         IMMEDIATE = 'IMMEDIATE',
+    }
+    export enum taskType {
+        GITHUB = 'GITHUB',
+        DEFAULT = 'DEFAULT',
     }
 }
 

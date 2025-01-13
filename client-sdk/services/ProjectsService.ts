@@ -11,6 +11,7 @@ import type { CreateProjectDto } from '../models/CreateProjectDto';
 import type { CreateProjectStatusDto } from '../models/CreateProjectStatusDto';
 import type { CreateRoleDto } from '../models/CreateRoleDto';
 import type { GeneralResult } from '../models/GeneralResult';
+import type { GithubRepoEntity } from '../models/GithubRepoEntity';
 import type { MemberPaginateEntity } from '../models/MemberPaginateEntity';
 import type { PhaseEntity } from '../models/PhaseEntity';
 import type { ProjectDomainEntity } from '../models/ProjectDomainEntity';
@@ -23,6 +24,7 @@ import type { UpdateCategoryDto } from '../models/UpdateCategoryDto';
 import type { UpdatePhaseDto } from '../models/UpdatePhaseDto';
 import type { UpdateProjectDomainDto } from '../models/UpdateProjectDomainDto';
 import type { UpdateProjectDto } from '../models/UpdateProjectDto';
+import type { UpdateReposDto } from '../models/UpdateReposDto';
 import type { UpdateStatusDto } from '../models/UpdateStatusDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -825,6 +827,64 @@ export class ProjectsService {
             url: '/projects/me/by-domain',
             query: {
                 'domain': domain,
+            },
+        });
+    }
+    /**
+     * Get Project Repo
+     * @param projectId
+     * @returns GithubRepoEntity
+     * @throws ApiError
+     */
+    public static projectsControllerGetProjectRepos(
+        projectId: string,
+    ): CancelablePromise<Array<GithubRepoEntity>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/projects/{projectId}/github/repo',
+            path: {
+                'projectId': projectId,
+            },
+        });
+    }
+    /**
+     * Create GitHub Repo
+     * @param projectId
+     * @param requestBody
+     * @returns any The repo has been successfully created.
+     * @throws ApiError
+     */
+    public static projectsControllerCreateGithubRepo(
+        projectId: string,
+        requestBody: UpdateReposDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/projects/{projectId}/github/repo',
+            path: {
+                'projectId': projectId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Get a single GitHub Repo
+     * @param projectId
+     * @param repoId
+     * @returns GithubRepoEntity Returns the specified GitHub repo.
+     * @throws ApiError
+     */
+    public static projectsControllerFindOneGithubRepo(
+        projectId: string,
+        repoId: string,
+    ): CancelablePromise<GithubRepoEntity> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/projects/{projectId}/github/repo/{repoId}',
+            path: {
+                'projectId': projectId,
+                'repoId': repoId,
             },
         });
     }

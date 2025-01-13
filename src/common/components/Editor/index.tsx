@@ -6,7 +6,12 @@ import Dropcursor from "@tiptap/extension-dropcursor";
 import Image from "@tiptap/extension-image";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
-import { Editor, EditorProvider, useCurrentEditor, useEditor } from "@tiptap/react";
+import {
+  Editor,
+  EditorProvider,
+  useCurrentEditor,
+  useEditor,
+} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Button, Upload, UploadFile } from "antd";
 import React, { useEffect } from "react";
@@ -233,6 +238,7 @@ const MenuBar = ({
           multiple={false}
           showUploadList={false}
           customRequest={async ({ file }) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const url = await onUpload(file as any);
             if (url) {
               editor.chain().focus().setImage({ src: url }).run();
@@ -267,7 +273,7 @@ const extensions = [
   Image,
   Dropcursor,
   Color.configure({ types: [TextStyle.name, ListItem.name] }),
-  TextStyle.configure({ types: [ListItem.name] }),
+  TextStyle.configure(),
   StarterKit.configure({
     bulletList: {
       keepMarks: true,
@@ -280,7 +286,7 @@ const extensions = [
   }),
 ];
 
-export default ({
+const CommonEditor = ({
   handleUpload,
   content,
   onUpdate,
@@ -308,3 +314,5 @@ export default ({
     </div>
   );
 };
+
+export default CommonEditor

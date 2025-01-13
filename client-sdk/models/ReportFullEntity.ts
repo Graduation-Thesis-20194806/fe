@@ -29,6 +29,7 @@ export type ReportFullEntity = {
     createdBy: UserCompactEntity;
     phaseId?: number;
     isProcessing?: boolean;
+    isClosable: boolean;
     ReportImage: Array<ReportImageEntity>;
     ReportComment: Array<ReportCommentsEntity>;
     DuplicateGroup?: Array<ReportDuplicateEntity>;
@@ -59,9 +60,11 @@ export namespace ReportFullEntity {
     export enum status {
         INIT = 'INIT',
         CONFIRMING = 'CONFIRMING',
+        CONFIRMED = 'CONFIRMED',
         IN_PROCESSING = 'IN_PROCESSING',
         REJECTED = 'REJECTED',
         DONE = 'DONE',
+        REOPEN = 'REOPEN',
     }
 }
 

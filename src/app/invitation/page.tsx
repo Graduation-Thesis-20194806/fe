@@ -1,7 +1,8 @@
 import InvitationContainer from "@/ui/invitation"
+import { Suspense } from "react"
 
 const InvitationPage = ()=>{
-    return <><InvitationContainer/></>
+    return <Suspense><InvitationContainer/></Suspense>
 }
 
 export default InvitationPage

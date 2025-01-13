@@ -31,7 +31,7 @@ export class ReportsService {
         pageSize?: number,
         severity?: 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH',
         issueType?: 'UI' | 'FUNCTIONAL' | 'PERFORMANCE' | 'SECURITY' | 'NETWORK' | 'DATA' | 'OTHER',
-        status?: 'INIT' | 'CONFIRMING' | 'IN_PROCESSING' | 'REJECTED' | 'DONE',
+        status?: 'INIT' | 'CONFIRMING' | 'CONFIRMED' | 'IN_PROCESSING' | 'REJECTED' | 'DONE' | 'REOPEN',
         keyword?: string,
         phaseId?: number,
     ): CancelablePromise<ReportPaginationEntity> {
@@ -106,6 +106,22 @@ export class ReportsService {
     ): CancelablePromise<ReportFullEntity> {
         return __request(OpenAPI, {
             method: 'GET',
+            url: '/projects/{projectid}/reports/me/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @returns any
+     * @throws ApiError
+     */
+    public static reportsControllerDeleteReport(
+        id: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
             url: '/projects/{projectid}/reports/me/{id}',
             path: {
                 'id': id,
