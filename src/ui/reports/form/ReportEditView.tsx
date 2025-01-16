@@ -417,7 +417,7 @@ export function ReportEditView({
                         )
                   }
                   className="w-full"
-                  disabled={disableMetaEdit}
+                  disabled={disableMetaEdit || getValues("status") === ReportListItemEntity.status.REJECTED}
                 />
               )}
             />
@@ -466,7 +466,7 @@ export function ReportEditView({
         <TitleWrapper label="Merged Reports">
           {childrenReport?.map((item) => (
             <div
-              className="w-full p-4 rounded-lg border-[#f1f1f1]"
+              className="w-full py-4 rounded-lg border-[#f1f1f1]"
               key={item.id}
             >
               <Link href={`/project/${project_id}/tasks/${item.id}`}>
@@ -478,13 +478,16 @@ export function ReportEditView({
         <TitleWrapper label="Duplicate Report">
           {duplicateReport?.map((item) => (
             <div
-              className="flex justify-between p-4 rounded-lg border-[#f1f1f1]"
+              className="flex justify-between py-4 rounded-lg border-[#f1f1f1] gap-2"
               key={item.id}
             >
+              <div className="grow">
+              <Tag color={item.level === ReportDuplicateEntity.level.HIGH? 'red': item.level === ReportDuplicateEntity.level.MEDIUM? 'green':'blue'}><span className="font-bold">{item.level.substring(0,1)}</span> <span className="cursor-pointer ml-2"><CloseCircleOutlined/></span></Tag>
               <Link href={`/project/${project_id}/reports/${item.id}`}>
                 {item.name}
               </Link>
-              <div>
+              </div>
+              <div className="w-[100px]">
                 <Button
                   size="small"
                   icon={<MergeOutlined />}

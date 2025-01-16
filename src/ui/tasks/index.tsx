@@ -215,15 +215,15 @@ const TaskManagementContainer = () => {
       {
         key: "assignTo",
         title: "Assign",
-        render: (_, { ProjectMember }) => {
+        render: (_, { Assignee }) => {
           return (
             <>
-              {ProjectMember ? (
-                <Tooltip title={ProjectMember.user?.username}>
-                  {ProjectMember.user?.avatar ? (
+              {Assignee ? (
+                <Tooltip title={Assignee.user?.username}>
+                  {Assignee.user?.avatar ? (
                     <Avatar
                       size="small"
-                      src={getS3Link(ProjectMember.user.avatar)}
+                      src={getS3Link(Assignee.user.avatar)}
                     />
                   ) : (
                     <Avatar size="small" icon={<UserOutlined />} />

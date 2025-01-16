@@ -15,7 +15,7 @@ RUN yarn
 
 # Copy the entire project to the container
 COPY . .
-COPY .env.example .env
+COPY .env.production .env
 
 # Build the Next.js application
 RUN yarn build
